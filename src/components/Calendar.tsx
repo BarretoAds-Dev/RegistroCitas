@@ -55,12 +55,24 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 			   date.getFullYear() === selectedDate.getFullYear();
 	};
 
-	const prevMonth = () => {
-		setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+	const prevMonth = (e: Event) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setCurrentDate((prev) => {
+			const newDate = new Date(prev);
+			newDate.setMonth(prev.getMonth() - 1);
+			return newDate;
+		});
 	};
 
-	const nextMonth = () => {
-		setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+	const nextMonth = (e: Event) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setCurrentDate((prev) => {
+			const newDate = new Date(prev);
+			newDate.setMonth(prev.getMonth() + 1);
+			return newDate;
+		});
 	};
 
 	const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
