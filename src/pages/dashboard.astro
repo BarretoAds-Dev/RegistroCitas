@@ -2,19 +2,20 @@
 import Layout from '../layouts/Layout.astro';
 import AppointmentsDashboard from '../components/AppointmentsDashboard';
 import { getEntry } from 'astro:content';
+import type { Appointment } from '../types/appointment';
 
 // 📊 Cargar citas agendadas
-let appointmentsData: { data: any[] } = { data: [] };
+let appointmentsData: { data: Appointment[] } = { data: [] };
 
 try {
 	const appointmentsEntry = await getEntry('appointments', 'booked');
-	appointmentsData = appointmentsEntry as { data: any[] };
+	appointmentsData = appointmentsEntry as { data: Appointment[] };
 } catch (error) {
 	console.error('Error loading appointments:', error);
 }
 
 // Ordenar citas por fecha y hora (más recientes primero)
-const sortedAppointments = [...(appointmentsData?.data || [])].sort((a, b) => {
+const sortedAppointments: Appointment[] = [...(appointmentsData?.data || [])].sort((a, b) => {
 	const dateA = new Date(`${a.date}T${a.time}`);
 	const dateB = new Date(`${b.date}T${b.time}`);
 	return dateB.getTime() - dateA.getTime();
