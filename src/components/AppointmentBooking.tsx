@@ -47,8 +47,16 @@ export default function AppointmentBooking({ availableSlots, config }: Props) {
 		return dayData?.slots || [];
 	}, [selectedDate, availableSlots]);
 
+	// Función helper para formatear fecha en hora local (sin conversión UTC)
+	const formatDateLocal = (date: Date): string => {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	};
+
 	const handleDateSelect = (date: Date) => {
-		const dateStr = date.toISOString().split('T')[0];
+		const dateStr = formatDateLocal(date);
 		setSelectedDate(dateStr);
 		setSelectedTime(null);
 		setCurrentStep(2);
@@ -82,6 +90,12 @@ export default function AppointmentBooking({ availableSlots, config }: Props) {
 		setAppointmentData(null);
 	};
 
+	// Función helper para crear Date desde string YYYY-MM-DD en hora local
+	const parseDateLocal = (dateStr: string): Date => {
+		const [year, month, day] = dateStr.split('-').map(Number);
+		return new Date(year, month - 1, day);
+	};
+
 	return (
 		<>
 			<ProgressIndicator currentStep={currentStep} />
@@ -93,13 +107,13 @@ export default function AppointmentBooking({ availableSlots, config }: Props) {
 						<Calendar 
 							availableSlots={availableSlots}
 							onDateSelect={handleDateSelect}
-							selectedDate={selectedDate ? new Date(selectedDate) : null}
+							selectedDate={selectedDate ? parseDateLocal(selectedDate) : null}
 						/>
 					)}
 					
 					{currentStep === 2 && (
 						<TimeSlots
-							selectedDate={selectedDate ? new Date(selectedDate) : null}
+							selectedDate={selectedDate ? parseDateLocal(selectedDate) : null}
 							selectedTime={selectedTime}
 							slots={slotsForSelectedDate}
 							onTimeSelect={handleTimeSelect}
@@ -109,7 +123,7 @@ export default function AppointmentBooking({ availableSlots, config }: Props) {
 					
 					{currentStep === 3 && (
 						<AppointmentForm
-							selectedDate={selectedDate ? new Date(selectedDate) : null}
+							selectedDate={selectedDate ? parseDateLocal(selectedDate) : null}
 							selectedTime={selectedTime}
 							onBack={handleBackToTime}
 							onSubmit={handleFormSubmit}

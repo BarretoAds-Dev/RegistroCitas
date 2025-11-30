@@ -137,7 +137,8 @@ const comprarSchema = z.object({
 // Schema principal que combina todo
 export const appointmentSchema = z.object({
 	date: z.string().min(1, 'Debes seleccionar una fecha'),
-	time: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido'),
+	// Aceptar formato HH:MM o HH:MM:SS
+	time: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, 'Formato de hora inválido'),
 }).and(contactSchema).and(
 	z.union([
 		rentarSchema,

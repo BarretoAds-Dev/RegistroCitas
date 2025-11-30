@@ -54,7 +54,16 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 
 		const result = validateAppointmentClient(data);
 		if (!result.success && result.errors) {
-			setErrors(prev => ({ ...prev, [name]: result.errors![name] || '' }));
+			const errorMessage = result.errors[name];
+			if (errorMessage && String(errorMessage).trim().length > 0) {
+				setErrors(prev => ({ ...prev, [name]: String(errorMessage) }));
+			} else {
+				setErrors(prev => {
+					const newErrors = { ...prev };
+					delete newErrors[name];
+					return newErrors;
+				});
+			}
 		} else {
 			setErrors(prev => {
 				const newErrors = { ...prev };
@@ -82,8 +91,17 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 		const form = e.target as HTMLFormElement;
 		const formData = new FormData(form);
 		
+		// Formatear fecha como YYYY-MM-DD para la API (en hora local, sin conversión UTC)
+		const formatDateLocal = (date: Date): string => {
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const day = String(date.getDate()).padStart(2, '0');
+			return `${year}-${month}-${day}`;
+		};
+		const dateStr = formatDateLocal(selectedDate);
+		
 		const appointmentData: any = {
-			date: selectedDate.toLocaleDateString('es-ES'),
+			date: dateStr,
 			time: selectedTime,
 			name: formData.get('name') || '',
 			email: formData.get('email') || '',
@@ -112,33 +130,83 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 			}
 		}
 
-		// Validar datos
+		// Validar datos client-side primero
 		const validation = validateAppointmentClient(appointmentData);
 		
 		if (!validation.success) {
-			setErrors(validation.errors || {});
+			const validationErrors = validation.errors || {};
+			// Filtrar errores vacíos o undefined
+			const filteredErrors: Record<string, string> = {};
+			Object.entries(validationErrors).forEach(([key, value]) => {
+				if (value && String(value).trim().length > 0) {
+					filteredErrors[key] = String(value);
+				}
+			});
+			
+			setErrors(filteredErrors);
 			setIsSubmitting(false);
 			// Marcar todos los campos como touched para mostrar errores
-			const allFields = Object.keys(validation.errors || {});
+			const allFields = Object.keys(filteredErrors);
 			const touchedFields: Record<string, boolean> = {};
 			allFields.forEach(field => {
 				touchedFields[field] = true;
 			});
 			setTouched(touchedFields);
+			
+			// Scroll al primer error
+			if (allFields.length > 0) {
+				const firstErrorField = document.querySelector(`[name="${allFields[0]}"]`);
+				if (firstErrorField) {
+					firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+					(firstErrorField as HTMLElement).focus();
+				}
+			}
 			return;
 		}
 
 		setIsSubmitting(true);
 		setErrors({});
 
-		// Simular envío
-		setTimeout(() => {
-			console.log('Datos de la cita validados:', validation.data);
-			setIsSubmitting(false);
-			if (validation.data) {
-				onSubmit(validation.data);
+		try {
+			// Enviar a la API
+			const response = await fetch('/api/appointments', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(appointmentData),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				// Error del servidor
+				console.error('Error del servidor:', result);
+				const errorMessage = result.details 
+					? `${result.error}: ${result.details}`
+					: result.error || 'Error al crear la cita. Por favor intenta nuevamente.';
+				
+				setErrors({
+					general: errorMessage,
+				});
+				setIsSubmitting(false);
+				return;
 			}
-		}, 1500);
+
+			// Éxito - pasar al siguiente paso
+			if (validation.data) {
+				onSubmit({
+					...validation.data,
+					appointmentId: result.appointment.id,
+				});
+			}
+		} catch (error) {
+			console.error('Error al enviar cita:', error);
+			setErrors({
+				general: 'Error de conexión. Por favor verifica tu conexión e intenta nuevamente.',
+			});
+			setIsSubmitting(false);
+		}
 	};
 
 	if (!selectedDate || !selectedTime) return null;
@@ -182,12 +250,17 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 
 			<form id="appointmentForm" onSubmit={handleSubmit} class="space-y-5">
 				{Object.keys(errors).length > 0 && (
-					<div class="bg-red-500/20 border-2 border-red-500/50 backdrop-blur-xl p-4 mb-4">
+					<div class="bg-red-500/20 border-2 border-red-500/50 backdrop-blur-xl p-4 mb-4 rounded">
 						<p class="text-red-300 text-sm font-semibold mb-2">Por favor corrige los siguientes errores:</p>
+						{errors.general ? (
+							<p class="text-red-200 text-sm mb-2">{errors.general}</p>
+						) : null}
 						<ul class="list-disc list-inside text-red-200 text-xs space-y-1">
-							{Object.entries(errors).map(([field, error]) => (
-								<li key={field}>{error}</li>
-							))}
+							{Object.entries(errors)
+								.filter(([field, error]) => field !== 'general' && error && error.trim().length > 0)
+								.map(([field, error]) => (
+									<li key={field} class="mt-1">{String(error)}</li>
+								))}
 						</ul>
 					</div>
 				)}
@@ -261,9 +334,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 					<label class="block text-sm font-bold text-white mb-3 uppercase tracking-wide">
 						Tipo de operación <span class="text-red-400">*</span>
 					</label>
-					<div class="grid grid-cols-2 gap-3">
+					<div class={`grid grid-cols-2 gap-3 ${touched.operationType && errors.operationType ? 'mb-2' : ''}`}>
 						<label class={`group relative flex items-center p-4 border-2 cursor-pointer bg-slate-700/40 backdrop-blur-xl hover:bg-slate-700/60 transition-all shadow-md shadow-black/20 hover:shadow-md hover:shadow-black/25 ${
-							operationType === 'rentar' ? 'border-[#00a0df]/60 bg-[#003d82]/15' : 'border-slate-600/50 hover:border-[#00a0df]/40'
+							operationType === 'rentar' ? 'border-[#00a0df]/60 bg-[#003d82]/15' : touched.operationType && errors.operationType ? 'border-red-500/50' : 'border-slate-600/50 hover:border-[#00a0df]/40'
 						}`}>
 							<input
 								type="radio"
@@ -272,7 +345,10 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								checked={operationType === 'rentar'}
 								onChange={(e) => {
 									const target = e.target as HTMLInputElement;
-									if (target) setOperationType(target.value as 'rentar');
+									if (target) {
+										setOperationType(target.value as 'rentar');
+										handleBlur('operationType');
+									}
 								}}
 								required
 								class="sr-only peer"
@@ -291,7 +367,7 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 							</div>
 						</label>
 						<label class={`group relative flex items-center p-4 border-2 cursor-pointer bg-slate-700/40 backdrop-blur-xl hover:bg-slate-700/60 transition-all shadow-md shadow-black/20 hover:shadow-md hover:shadow-black/25 ${
-							operationType === 'comprar' ? 'border-[#00a0df]/60 bg-[#003d82]/15' : 'border-slate-600/50 hover:border-[#00a0df]/40'
+							operationType === 'comprar' ? 'border-[#00a0df]/60 bg-[#003d82]/15' : touched.operationType && errors.operationType ? 'border-red-500/50' : 'border-slate-600/50 hover:border-[#00a0df]/40'
 						}`}>
 							<input
 								type="radio"
@@ -300,7 +376,10 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								checked={operationType === 'comprar'}
 								onChange={(e) => {
 									const target = e.target as HTMLInputElement;
-									if (target) setOperationType(target.value as 'comprar');
+									if (target) {
+										setOperationType(target.value as 'comprar');
+										handleBlur('operationType');
+									}
 								}}
 								required
 								class="sr-only peer"
@@ -319,6 +398,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 							</div>
 						</label>
 					</div>
+					{touched.operationType && errors.operationType && (
+						<p class="mt-2 text-sm text-red-400">{errors.operationType}</p>
+					)}
 				</div>
 
 				{/* Campos condicionales para RENTAR */}
@@ -332,7 +414,12 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								id="budgetRentar"
 								name="budgetRentar"
 								required
-								class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+								onBlur={() => handleBlur('budgetRentar')}
+								class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+									touched.budgetRentar && errors.budgetRentar
+										? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+										: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+								}`}
 							>
 								<option value="">Selecciona un rango</option>
 								<option value="20000-30000">$20,000 - $30,000 MXN</option>
@@ -344,6 +431,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								<option value="100000-150000">$100,000 - $150,000 MXN</option>
 								<option value="mas-150000">Más de $150,000 MXN</option>
 							</select>
+							{touched.budgetRentar && errors.budgetRentar && (
+								<p class="mt-1 text-sm text-red-400">{errors.budgetRentar}</p>
+							)}
 						</div>
 						<div>
 							<label htmlFor="company" class="block text-sm font-bold text-white mb-2 uppercase tracking-wide">
@@ -354,9 +444,17 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								id="company"
 								name="company"
 								required
-								class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white placeholder-gray-400 shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+								onBlur={() => handleBlur('company')}
+								class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white placeholder-gray-400 shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+									touched.company && errors.company
+										? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+										: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+								}`}
 								placeholder="Ej: Empresa S.A."
 							/>
+							{touched.company && errors.company && (
+								<p class="mt-1 text-sm text-red-400">{errors.company}</p>
+							)}
 						</div>
 					</div>
 				)}
@@ -372,7 +470,12 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								id="budgetComprar"
 								name="budgetComprar"
 								required
-								class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+								onBlur={() => handleBlur('budgetComprar')}
+								class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+									touched.budgetComprar && errors.budgetComprar
+										? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+										: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+								}`}
 							>
 								<option value="">Selecciona un rango</option>
 								<option value="2500000-3000000">$2,500,000 - $3,000,000 MXN</option>
@@ -384,6 +487,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								<option value="8000000-10000000">$8,000,000 - $10,000,000 MXN</option>
 								<option value="mas-10000000">Más de $10,000,000 MXN</option>
 							</select>
+							{touched.budgetComprar && errors.budgetComprar && (
+								<p class="mt-1 text-sm text-red-400">{errors.budgetComprar}</p>
+							)}
 						</div>
 						<div>
 							<label htmlFor="resourceType" class="block text-sm font-bold text-white mb-2 uppercase tracking-wide">
@@ -395,10 +501,26 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								value={resourceType}
 								onChange={(e) => {
 									const target = e.target as HTMLSelectElement;
-									if (target) setResourceType(target.value);
+									if (target) {
+										setResourceType(target.value);
+										// Limpiar errores relacionados cuando cambia el tipo de recurso
+										setErrors(prev => {
+											const newErrors = { ...prev };
+											delete newErrors.banco;
+											delete newErrors.creditoPreaprobado;
+											delete newErrors.modalidadInfonavit;
+											delete newErrors.modalidadFovissste;
+											return newErrors;
+										});
+									}
 								}}
+								onBlur={() => handleBlur('resourceType')}
 								required
-								class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+								class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+									touched.resourceType && errors.resourceType
+										? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+										: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+								}`}
 							>
 								<option value="">Selecciona el origen del recurso</option>
 								<option value="recursos-propios">Recursos propios</option>
@@ -406,6 +528,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 								<option value="infonavit">Infonavit</option>
 								<option value="fovissste">Fovissste</option>
 							</select>
+							{touched.resourceType && errors.resourceType && (
+								<p class="mt-1 text-sm text-red-400">{errors.resourceType}</p>
+							)}
 						</div>
 
 						{/* Campos condicionales para CRÉDITO BANCARIO */}
@@ -419,7 +544,12 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 										id="banco"
 										name="banco"
 										required
-										class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+										onBlur={() => handleBlur('banco')}
+										class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+											touched.banco && errors.banco
+												? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+												: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+										}`}
 									>
 										<option value="">Selecciona un banco</option>
 										<option value="bbva">BBVA</option>
@@ -436,18 +566,24 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 										<option value="banco-multiva">Banco Multiva</option>
 										<option value="otro-banco">Otro banco</option>
 									</select>
+									{touched.banco && errors.banco && (
+										<p class="mt-1 text-sm text-red-400">{errors.banco}</p>
+									)}
 								</div>
 								<div>
 									<label class="block text-sm font-bold text-white mb-3 uppercase tracking-wide">
 										¿Ya cuenta con un crédito preaprobado? <span class="text-red-400 normal-case">*</span>
 									</label>
-									<div class="grid grid-cols-2 gap-3">
-										<label class="group relative flex items-center p-4 border-2 border-slate-600/50 cursor-pointer bg-slate-700/40 backdrop-blur-xl hover:bg-slate-700/60 transition-all shadow-md shadow-black/20 hover:shadow-md hover:shadow-black/25">
+									<div class={`grid grid-cols-2 gap-3 ${touched.creditoPreaprobado && errors.creditoPreaprobado ? 'mb-2' : ''}`}>
+										<label class={`group relative flex items-center p-4 border-2 cursor-pointer bg-slate-700/40 backdrop-blur-xl hover:bg-slate-700/60 transition-all shadow-md shadow-black/20 hover:shadow-md hover:shadow-black/25 ${
+											touched.creditoPreaprobado && errors.creditoPreaprobado ? 'border-red-500/50' : 'border-slate-600/50'
+										}`}>
 											<input
 												type="radio"
 												name="creditoPreaprobado"
 												value="si"
 												required
+												onChange={() => handleBlur('creditoPreaprobado')}
 												class="sr-only peer"
 											/>
 											<div class="flex items-center gap-3 w-full">
@@ -457,12 +593,15 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 												<span class="text-white font-semibold peer-checked:text-[#00a0df] transition-colors uppercase tracking-wide text-xs">Sí</span>
 											</div>
 										</label>
-										<label class="group relative flex items-center p-4 border-2 border-slate-600/50 cursor-pointer bg-slate-700/40 backdrop-blur-xl hover:bg-slate-700/60 transition-all shadow-md shadow-black/20 hover:shadow-md hover:shadow-black/25">
+										<label class={`group relative flex items-center p-4 border-2 cursor-pointer bg-slate-700/40 backdrop-blur-xl hover:bg-slate-700/60 transition-all shadow-md shadow-black/20 hover:shadow-md hover:shadow-black/25 ${
+											touched.creditoPreaprobado && errors.creditoPreaprobado ? 'border-red-500/50' : 'border-slate-600/50'
+										}`}>
 											<input
 												type="radio"
 												name="creditoPreaprobado"
 												value="no"
 												required
+												onChange={() => handleBlur('creditoPreaprobado')}
 												class="sr-only peer"
 											/>
 											<div class="flex items-center gap-3 w-full">
@@ -473,6 +612,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 											</div>
 										</label>
 									</div>
+									{touched.creditoPreaprobado && errors.creditoPreaprobado && (
+										<p class="mt-2 text-sm text-red-400">{errors.creditoPreaprobado}</p>
+									)}
 								</div>
 							</div>
 						)}
@@ -488,7 +630,12 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 										id="modalidadInfonavit"
 										name="modalidadInfonavit"
 										required
-										class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+										onBlur={() => handleBlur('modalidadInfonavit')}
+										class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+											touched.modalidadInfonavit && errors.modalidadInfonavit
+												? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+												: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+										}`}
 									>
 										<option value="">Selecciona una modalidad</option>
 										<option value="tradicional">Tradicional</option>
@@ -496,6 +643,9 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 										<option value="mejoravit">Mejoravit</option>
 										<option value="tu-casa">Tu Casa</option>
 									</select>
+									{touched.modalidadInfonavit && errors.modalidadInfonavit && (
+										<p class="mt-1 text-sm text-red-400">{errors.modalidadInfonavit}</p>
+									)}
 								</div>
 								<div>
 									<label htmlFor="numeroTrabajadorInfonavit" class="block text-sm font-bold text-white mb-2 uppercase tracking-wide">
@@ -523,13 +673,21 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 										id="modalidadFovissste"
 										name="modalidadFovissste"
 										required
-										class="w-full px-4 py-3 border-2 border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light"
+										onBlur={() => handleBlur('modalidadFovissste')}
+										class={`w-full px-4 py-3 border-2 outline-none transition-all bg-slate-700/40 backdrop-blur-xl text-white appearance-none cursor-pointer shadow-sm shadow-black/15 hover:bg-slate-700/50 font-light ${
+											touched.modalidadFovissste && errors.modalidadFovissste
+												? 'border-red-500/70 focus:ring-2 focus:ring-red-500/30 focus:border-red-500'
+												: 'border-slate-600/50 focus:ring-2 focus:ring-[#00a0df]/30 focus:border-[#00a0df]/70'
+										}`}
 									>
 										<option value="">Selecciona una modalidad</option>
 										<option value="tradicional">Tradicional</option>
 										<option value="cofinavit">Cofinavit</option>
 										<option value="mi-vivienda">Mi Vivienda</option>
 									</select>
+									{touched.modalidadFovissste && errors.modalidadFovissste && (
+										<p class="mt-1 text-sm text-red-400">{errors.modalidadFovissste}</p>
+									)}
 								</div>
 								<div>
 									<label htmlFor="numeroTrabajadorFovissste" class="block text-sm font-bold text-white mb-2 uppercase tracking-wide">
