@@ -1,11 +1,78 @@
 ---
 import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import { getEntry, getCollection } from 'astro:content';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+// 📊 Cargar datos de Content Collections
+let availabilityData: { data: any[] } = { data: [] };
+let scheduleConfig: { data: { slotDuration: number; bufferTime: number; businessHours: Record<string, any> } } = {
+	data: {
+		slotDuration: 30,
+		bufferTime: 5,
+		businessHours: {}
+	}
+};
+let holidays: Array<{ data: any }> = [];
+
+try {
+	const availabilityEntry = await getEntry('availability', 'availability');
+	const scheduleEntry = await getEntry('schedule', 'business-hours');
+	const holidaysCollection = await getCollection('holidays');
+	
+	availabilityData = availabilityEntry as { data: any[] };
+	scheduleConfig = scheduleEntry as { data: { slotDuration: number; bufferTime: number; businessHours: Record<string, any> } };
+	holidays = holidaysCollection as Array<{ data: any }>;
+} catch (error) {
+	console.error('Error loading content collections:', error);
+	// Los valores por defecto ya están asignados arriba
+}
+
+// 🔍 Procesar datos para el componente
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+// Filtrar solo fechas futuras con disponibilidad
+const availableSlots = (availabilityData?.data || [])
+	.filter((day: any) => {
+		const dayDate = new Date(day.date);
+		return dayDate >= today;
+	})
+	.map((day: any) => ({
+		date: day.date,
+		dayOfWeek: day.dayOfWeek,
+		slots: day.timeSlots.filter((slot: any) => 
+			slot.available && slot.booked < slot.capacity
+		),
+		metadata: day.metadata
+	}))
+	.filter((day: any) => day.slots.length > 0);
+
+// Crear Set de días festivos
+const holidayDates = new Set(
+	holidays.flatMap((h: any) => {
+		// holidays collection contiene entries con data como array
+		return Array.isArray(h.data) 
+			? h.data.map((holiday: any) => holiday?.date).filter(Boolean)
+			: [h.data?.date].filter(Boolean);
+	})
+);
+
+// Filtrar días festivos
+const filteredSlots = availableSlots.filter(
+	(day: any) => !holidayDates.has(day.date)
+);
+
+// Preparar configuración
+const config = {
+	slotDuration: scheduleConfig?.data?.slotDuration ?? 30,
+	bufferTime: scheduleConfig?.data?.bufferTime ?? 5,
+	businessHours: scheduleConfig?.data?.businessHours ?? {}
+};
 ---
 
 <Layout>
-	<Welcome />
+	<Welcome 
+		availableSlots={filteredSlots}
+		config={config}
+	/>
 </Layout>
