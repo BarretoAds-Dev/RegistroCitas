@@ -205,15 +205,15 @@ export default function CRMDashboard({ appointments, properties, clients }: CRMD
 				</div>
 			)}
 
-			{activeTab === 'properties' && properties.length >= 0 && (
+			{activeTab === 'properties' && (
 				<PropertiesSection properties={properties} />
 			)}
 
-			{activeTab === 'appointments' && appointments.length >= 0 && (
+			{activeTab === 'appointments' && (
 				<AppointmentsSection appointments={appointments} />
 			)}
 
-			{activeTab === 'clients' && clients.length >= 0 && (
+			{activeTab === 'clients' && (
 				<ClientsSection clients={clients} />
 			)}
 		</div>
