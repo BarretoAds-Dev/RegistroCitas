@@ -148,9 +148,8 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 		<>
 			<ProgressIndicator currentStep={currentStep} />
 			
-			<div class="bg-slate-800/40 backdrop-blur-xl shadow-lg shadow-black/30 overflow-hidden border-2 border-slate-700/50 relative">
-				<div class="absolute inset-0 bg-gradient-to-br from-[#003d82]/2 via-transparent to-[#00a0df]/2 pointer-events-none"></div>
-				<div class="p-6 md:p-10 relative z-10">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+				<div class="p-6 md:p-8 lg:p-10">
 					{currentStep === 1 && (
 						<Calendar 
 							availableSlots={availableSlots}

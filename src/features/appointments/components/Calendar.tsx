@@ -155,24 +155,24 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 	return (
 		<div class="max-w-md mx-auto transition-all duration-500">
 			<div class="text-center mb-6">
-				<h2 class="text-2xl font-bold text-white mb-2 tracking-tight">Selecciona una fecha</h2>
-				<p class="text-gray-300 text-sm font-light">Elige el día que mejor te convenga</p>
+				<h2 class="text-2xl font-bold text-gray-900 mb-2">Selecciona una fecha</h2>
+				<p class="text-gray-500 text-sm">Elige el día que mejor te convenga</p>
 			</div>
 
 			{/* Mensaje de advertencia para día actual */}
 			{showTodayMessage && (
-				<div class="mb-4 bg-yellow-500/20 border-2 border-yellow-500/50 backdrop-blur-xl p-4 rounded animate-pulse">
+				<div class="mb-4 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
 					<div class="flex items-start gap-3">
-						<svg class="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
 						</svg>
 						<div class="flex-1">
-							<p class="text-sm font-semibold text-yellow-200 mb-1">Las citas deben tener 24 horas de anticipación</p>
-							<p class="text-xs text-yellow-300">Por favor selecciona una cita para el día siguiente o posterior.</p>
+							<p class="text-sm font-semibold text-yellow-800 mb-1">Las citas deben tener 24 horas de anticipación</p>
+							<p class="text-xs text-yellow-700">Por favor selecciona una cita para el día siguiente o posterior.</p>
 						</div>
 						<button
 							onClick={() => setShowTodayMessage(false)}
-							class="text-yellow-400 hover:text-yellow-200"
+							class="text-yellow-600 hover:text-yellow-800"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -183,27 +183,27 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 			)}
 			
 			{/* Navegación del mes */}
-			<div class="flex items-center justify-between mb-6 bg-slate-700/40 backdrop-blur-xl p-3 border-2 border-slate-600/40 shadow-md shadow-black/20">
+			<div class="flex items-center justify-between mb-6 bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
 				<button
 					type="button"
 					onClick={prevMonth}
-					class="p-2 hover:bg-[#003d82]/30 backdrop-blur-sm transition-all duration-200 active:scale-95 border-2 border-transparent hover:border-[#00a0df]/30"
+					class="p-2 hover:bg-gray-50 transition-all duration-200 active:scale-95 rounded-md"
 					aria-label="Mes anterior"
 				>
-					<svg class="w-6 h-6 text-gray-300 hover:text-[#00a0df] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 					</svg>
 				</button>
-				<h3 class="text-lg font-bold text-white">
+				<h3 class="text-lg font-bold text-gray-900">
 					{months[currentDate.getMonth()]} {currentDate.getFullYear()}
 				</h3>
 				<button
 					type="button"
 					onClick={nextMonth}
-					class="p-2 hover:bg-[#003d82]/30 backdrop-blur-sm transition-all duration-200 active:scale-95 border-2 border-transparent hover:border-[#00a0df]/30"
+					class="p-2 hover:bg-gray-50 transition-all duration-200 active:scale-95 rounded-md"
 					aria-label="Mes siguiente"
 				>
-					<svg class="w-6 h-6 text-gray-300 hover:text-[#00a0df] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 					</svg>
 				</button>
@@ -212,7 +212,7 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 			{/* Días de la semana */}
 			<div class="grid grid-cols-7 gap-2 mb-3">
 				{['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
-					<div key={day} class="text-center text-xs font-semibold text-gray-400 py-2">
+					<div key={day} class="text-center text-xs font-semibold text-gray-500 py-2">
 						{day}
 					</div>
 				))}
@@ -231,30 +231,30 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 					const isSelected = isDateSelected(date);
 					const isTodayDate = isToday(date);
 
-					// Determinar colores según el estado de disponibilidad
+					// Determinar colores según el estado de disponibilidad (estilo CRM)
 					let dayBgClass = '';
 					let dayHoverClass = '';
 					
 					if (isPast || !isAvailable) {
-						dayBgClass = 'bg-slate-800/20 border-slate-700/20 text-slate-600';
+						dayBgClass = 'bg-gray-100 border-gray-200 text-gray-400';
 						dayHoverClass = '';
 					} else {
 						switch (availabilityStatus) {
 							case 'available':
-								dayBgClass = 'bg-green-500/20 border-green-400/50 text-green-100';
-								dayHoverClass = 'hover:bg-green-500/30 hover:border-green-400 hover:text-green-50';
+								dayBgClass = 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50';
+								dayHoverClass = 'hover:border-gray-900 hover:shadow-sm';
 								break;
 							case 'half-full':
-								dayBgClass = 'bg-orange-500/20 border-orange-400/50 text-orange-100';
-								dayHoverClass = 'hover:bg-orange-500/30 hover:border-orange-400 hover:text-orange-50';
+								dayBgClass = 'bg-white border-orange-300 text-gray-900 hover:bg-orange-50';
+								dayHoverClass = 'hover:border-orange-400 hover:shadow-sm';
 								break;
 							case 'full':
-								dayBgClass = 'bg-red-500/20 border-red-400/50 text-red-100';
-								dayHoverClass = 'hover:bg-red-500/30 hover:border-red-400 hover:text-red-50';
+								dayBgClass = 'bg-gray-100 border-gray-200 text-gray-400';
+								dayHoverClass = '';
 								break;
 							case 'none':
 							default:
-								dayBgClass = 'bg-slate-800/20 border-slate-700/20 text-slate-600';
+								dayBgClass = 'bg-gray-100 border-gray-200 text-gray-400';
 								dayHoverClass = '';
 								break;
 						}
@@ -267,22 +267,22 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 							onClick={() => handleDateClick(date)}
 							disabled={isPast || !isAvailable || availabilityStatus === 'full' || availabilityStatus === 'none'}
 							class={`
-								py-3 px-2 text-sm font-bold transition-all duration-200 backdrop-blur-sm relative border-2 rounded-md
+								py-3 px-2 text-sm font-semibold transition-all duration-200 relative border rounded-md
 								${dayBgClass}
 								${!isPast && isAvailable && availabilityStatus !== 'full' && availabilityStatus !== 'none' 
-									? `${dayHoverClass} hover:scale-105 active:scale-95 shadow-sm shadow-black/10 hover:shadow-md hover:shadow-black/15 cursor-pointer`
+									? `${dayHoverClass} hover:scale-105 active:scale-95 cursor-pointer`
 									: 'cursor-not-allowed'
 								}
 								${isSelected 
-									? 'bg-[#003d82] backdrop-blur-xl text-white shadow-md shadow-black/20 scale-105 border-2 border-[#00a0df]/60' 
+									? 'bg-gray-900 text-white border-gray-900 shadow-md scale-105' 
 									: ''
 								}
 								${isTodayDate && !isSelected && isAvailable && availabilityStatus !== 'full' && availabilityStatus !== 'none'
-									? 'ring-2 ring-[#00a0df]/60 ring-offset-2 ring-offset-slate-800/50'
+									? 'ring-2 ring-gray-900 ring-offset-2'
 									: ''
 								}
 								${isTodayDate && isSelected
-									? 'bg-[#003d82] backdrop-blur-xl text-white'
+									? 'bg-gray-900 text-white border-gray-900'
 									: ''
 								}
 							`}
@@ -299,8 +299,8 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 							}
 						>
 							{day}
-							{isTodayDate && (
-								<span class="absolute -top-1 -right-1 w-2 h-2 bg-[#00a0df] rounded-full"></span>
+							{isTodayDate && !isSelected && (
+								<span class="absolute -top-1 -right-1 w-2 h-2 bg-gray-900 rounded-full"></span>
 							)}
 						</button>
 					);

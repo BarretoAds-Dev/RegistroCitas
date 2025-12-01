@@ -51,39 +51,39 @@ export default function TimeSlots({ selectedDate, selectedTime, slots, onTimeSel
 			<div className="text-center mb-6">
 				<button
 					onClick={onBack}
-					className="inline-flex items-center text-sm text-gray-300 hover:text-[#00a0df] mb-4 transition-colors font-semibold uppercase tracking-wide"
+					className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4 transition-colors font-medium"
 				>
 					<svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
 					</svg>
 					Cambiar fecha
 				</button>
-				<h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Selecciona una hora</h2>
-				<p className="text-gray-300 text-sm font-light">
-					Horarios para <span className="font-semibold text-[#00a0df]">
+				<h2 className="text-2xl font-bold text-gray-900 mb-2">Selecciona una hora</h2>
+				<p className="text-gray-500 text-sm">
+					Horarios para <span className="font-semibold text-gray-900">
 						{dateStr.charAt(0).toUpperCase() + dateStr.slice(1)}
 					</span>
 				</p>
 				{!hasAvailableSlots && (
-					<p className="text-yellow-400 text-sm font-medium mt-2">
+					<p className="text-yellow-600 text-sm font-medium mt-2">
 						⚠️ No hay horarios disponibles en este momento
 					</p>
 				)}
 			</div>
 			
-			<div className="bg-slate-700/30 backdrop-blur-xl p-6 border-2 border-slate-600/40 shadow-md shadow-black/20">
+			<div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
 				{/* Leyenda de colores */}
-				<div className="flex flex-wrap gap-4 mb-4 text-xs text-gray-300">
+				<div className="flex flex-wrap gap-4 mb-4 text-xs text-gray-600">
 					<div className="flex items-center gap-2">
-						<div className="w-4 h-4 bg-green-500/60 border border-green-400 rounded"></div>
+						<div className="w-4 h-4 bg-white border-2 border-gray-900 rounded"></div>
 						<span>Disponible</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<div className="w-4 h-4 bg-red-500/60 border border-red-400 rounded"></div>
+						<div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
 						<span>Ocupado</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<div className="w-4 h-4 bg-gray-500/40 border border-gray-500 rounded"></div>
+						<div className="w-4 h-4 bg-gray-100 border-2 border-gray-200 rounded"></div>
 						<span>No disponible</span>
 					</div>
 				</div>
@@ -95,22 +95,22 @@ export default function TimeSlots({ selectedDate, selectedTime, slots, onTimeSel
 						const remaining = slot.capacity - slot.booked;
 						const isClickable = status === 'available';
 						
-						// Colores según el estado
+						// Colores según el estado (estilo CRM)
 						let baseClasses = '';
 						let selectedClasses = '';
 						
 						if (status === 'available') {
-							// Verde: Disponible
-							baseClasses = 'bg-green-500/20 border-green-400/50 text-green-100 hover:bg-green-500/30 hover:border-green-400';
-							selectedClasses = 'bg-green-600/40 border-green-400 scale-105 shadow-lg shadow-green-500/20';
+							// Disponible: blanco con borde gris
+							baseClasses = 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50 hover:border-gray-900';
+							selectedClasses = 'bg-gray-900 border-gray-900 text-white scale-105 shadow-md';
 						} else if (status === 'occupied') {
-							// Rojo: Ocupado
-							baseClasses = 'bg-red-500/20 border-red-400/50 text-red-100 cursor-not-allowed opacity-75';
-							selectedClasses = 'bg-red-600/40 border-red-400';
+							// Ocupado: gris claro
+							baseClasses = 'bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed';
+							selectedClasses = 'bg-gray-200 border-gray-300';
 						} else {
-							// Gris: Deshabilitado
-							baseClasses = 'bg-gray-500/20 border-gray-500/50 text-gray-400 cursor-not-allowed opacity-50';
-							selectedClasses = 'bg-gray-600/40 border-gray-500';
+							// Deshabilitado: gris más claro
+							baseClasses = 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed';
+							selectedClasses = 'bg-gray-100 border-gray-200';
 						}
 						
 						return (
@@ -120,8 +120,8 @@ export default function TimeSlots({ selectedDate, selectedTime, slots, onTimeSel
 								disabled={!isClickable}
 								onClick={() => isClickable && onTimeSelect(slot.time)}
 								className={`
-									py-3 px-4 text-sm font-bold transition-all duration-200 backdrop-blur-xl relative
-									border-2 rounded
+									py-3 px-4 text-sm font-semibold transition-all duration-200 relative
+									border rounded-lg
 									${isSelected && isClickable
 										? selectedClasses
 										: baseClasses
