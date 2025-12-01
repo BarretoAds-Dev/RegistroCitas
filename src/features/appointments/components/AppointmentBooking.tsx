@@ -1,10 +1,10 @@
 /** @jsxImportSource preact */
-import { useState, useMemo } from 'preact/hooks';
+import { useState, useMemo, useEffect } from 'preact/hooks';
 import Calendar from './Calendar';
 import TimeSlots from './TimeSlots';
 import AppointmentForm from './AppointmentForm';
-import ConfirmationPanel from './ConfirmationPanel';
-import ProgressIndicator from './ProgressIndicator';
+import ConfirmationPanel from './ConfirmationPanel.astro';
+import ProgressIndicator from './ProgressIndicator.astro';
 import type { AvailableSlot, AppointmentConfig, AppointmentStep } from '../types';
 
 type Step = AppointmentStep;
@@ -126,6 +126,18 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 		}
 	};
 
+	// Escuchar evento personalizado del botón de nueva cita (desde ConfirmationPanel.astro)
+	useEffect(() => {
+		const handleNewAppointmentEvent = () => {
+			handleNewAppointment();
+		};
+
+		window.addEventListener('new-appointment', handleNewAppointmentEvent);
+		return () => {
+			window.removeEventListener('new-appointment', handleNewAppointmentEvent);
+		};
+	}, []);
+
 	// Función helper para crear Date desde string YYYY-MM-DD en hora local
 	const parseDateLocal = (dateStr: string): Date => {
 		const [year, month, day] = dateStr.split('-').map(Number);
@@ -184,7 +196,6 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 					{currentStep === 4 && (
 						<ConfirmationPanel
 							appointmentData={appointmentData}
-							onNewAppointment={handleNewAppointment}
 						/>
 					)}
 				</div>
