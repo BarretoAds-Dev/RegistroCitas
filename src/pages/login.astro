@@ -12,7 +12,8 @@ import LoginForm from '../features/auth/components/LoginForm';
 		<title>Iniciar Sesión - InmoCRM</title>
 	</head>
 	<body>
-		<LoginForm client:load />
+		<!-- client:visible - Balance perfecto: carga cuando es visible -->
+		<LoginForm client:visible />
 	</body>
 </html>
 

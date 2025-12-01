@@ -49,10 +49,11 @@ const { availableSlots, config } = Astro.props;
 		</div>
 
 		<!-- Componente principal con Islands Architecture -->
+		<!-- client:idle - Carga cuando el navegador está inactivo (optimización de rendimiento) -->
 		<AppointmentBooking 
 			availableSlots={availableSlots}
 			config={config}
-			client:load 
+			client:idle 
 		/>
 	</div>
 </div>

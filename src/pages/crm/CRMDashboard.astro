@@ -4,6 +4,7 @@ import CRMDashboardComponent from '../../features/crm/components/CRMDashboard';
 ---
 
 <CRMLayout>
-	<CRMDashboardComponent client:load />
+	<!-- client:idle - Dashboard interno, carga cuando el navegador está inactivo -->
+	<CRMDashboardComponent client:idle />
 </CRMLayout>
 
