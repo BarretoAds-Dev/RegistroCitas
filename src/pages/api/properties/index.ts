@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '../../../core/config/supabase';
+import { supabase, supabaseAdmin } from '../../../core/config/supabase';
 import type { Database } from '../../../core/types/database';
 
 type PropertyInsert = Database['public']['Tables']['properties']['Insert'];
@@ -32,6 +32,9 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
+    // Usar cliente admin para bypass RLS en operaciones del servidor
+    const client = supabaseAdmin || supabase;
+
     // Insertar propiedad en Supabase
     const propertyData = {
       title: body.title,
@@ -46,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
       status: 'active',
     } as PropertyInsert;
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('properties')
       .insert(propertyData as any)
       .select()

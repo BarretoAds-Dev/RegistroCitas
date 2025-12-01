@@ -43,3 +43,17 @@ export function validateEasyBrokerConfig(): boolean {
 	return true;
 }
 
+/**
+ * Obtiene la API key de Easy Broker
+ */
+export function getEasyBrokerApiKey(): string | null {
+	return EASYBROKER_API_KEY || null;
+}
+
+/**
+ * Obtiene la URL base de Easy Broker
+ */
+export function getEasyBrokerBaseUrl(): string {
+	return EASYBROKER_API_BASE_URL;
+}
+

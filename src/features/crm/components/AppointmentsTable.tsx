@@ -10,6 +10,7 @@ interface Property {
 	bedrooms: number | null;
 	bathrooms: number | null;
 	area: number | null;
+	imageUrl?: string | null; // URL de la imagen de la propiedad
 }
 
 interface Appointment {
@@ -320,13 +321,30 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 									</div>
 								</td>
 								<td class="px-3 md:px-4 lg:px-6 py-3 hidden lg:table-cell">
-									<div class="flex items-center gap-1.5">
-										<span class="text-gray-400 text-sm">❓</span>
-										<span class="text-gray-700 text-xs">
-											{typeof apt.property === 'object' && apt.property !== null
-												? `${apt.property.title} - ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(apt.property.price)}`
-												: apt.property || `${apt.operationType === 'rentar' ? 'Renta' : 'Compra'} - ${apt.budgetRange}`}
-										</span>
+									<div class="flex items-center gap-2">
+										{typeof apt.property === 'object' && apt.property !== null && apt.property.imageUrl && (
+											<img
+												src={
+													apt.property.imageUrl.includes('easybroker.com') ||
+													apt.property.imageUrl.includes('ebimg') ||
+													apt.property.imageUrl.includes('cloudfront')
+														? `/api/easybroker/image-proxy?url=${encodeURIComponent(apt.property.imageUrl)}`
+														: apt.property.imageUrl
+												}
+												alt={apt.property.title}
+												class="w-12 h-12 rounded-md object-cover flex-shrink-0 border border-gray-200"
+												onError={(e) => {
+													(e.target as HTMLImageElement).style.display = 'none';
+												}}
+											/>
+										)}
+										<div class="flex-1 min-w-0">
+											<span class="text-gray-700 text-xs block truncate">
+												{typeof apt.property === 'object' && apt.property !== null
+													? `${apt.property.title} - ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(apt.property.price)}`
+													: apt.property || `${apt.operationType === 'rentar' ? 'Renta' : 'Compra'} - ${apt.budgetRange}`}
+											</span>
+										</div>
 									</div>
 								</td>
 								<td class="px-3 md:px-4 lg:px-6 py-3 text-gray-700 text-xs sm:text-sm">
@@ -494,10 +512,27 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 								<span class="text-gray-400 text-xs flex-shrink-0">📅</span>
 								<span class="text-gray-700 break-words flex-1">{formatDate(apt.date, apt.time)}</span>
 							</div>
-							<div class="flex items-start gap-1.5">
-								<span class="text-gray-400 text-xs flex-shrink-0">❓</span>
-								<span class="text-gray-700 break-words flex-1">
-									{apt.property || `${apt.operationType === 'rentar' ? 'Renta' : 'Compra'} - ${apt.budgetRange}`}
+							<div class="flex items-start gap-2">
+								{typeof apt.property === 'object' && apt.property !== null && apt.property.imageUrl && (
+									<img
+										src={
+											apt.property.imageUrl.includes('easybroker.com') ||
+											apt.property.imageUrl.includes('ebimg') ||
+											apt.property.imageUrl.includes('cloudfront')
+												? `/api/easybroker/image-proxy?url=${encodeURIComponent(apt.property.imageUrl)}`
+												: apt.property.imageUrl
+										}
+										alt={apt.property.title}
+										class="w-12 h-12 rounded-md object-cover flex-shrink-0 border border-gray-200"
+										onError={(e) => {
+											(e.target as HTMLImageElement).style.display = 'none';
+										}}
+									/>
+								)}
+								<span class="text-gray-700 break-words flex-1 text-xs">
+									{typeof apt.property === 'object' && apt.property !== null
+										? `${apt.property.title} - ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(apt.property.price)}`
+										: apt.property || `${apt.operationType === 'rentar' ? 'Renta' : 'Compra'} - ${apt.budgetRange}`}
 								</span>
 							</div>
 							{apt.notes && (

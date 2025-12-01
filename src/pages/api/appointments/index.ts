@@ -20,17 +20,17 @@ export const POST: APIRoute = async ({ request }) => {
 		} catch (jsonError) {
 			console.error('❌ Error al parsear JSON:', jsonError);
 			return new Response(
-				JSON.stringify({ 
-					error: 'Body inválido o vacío', 
+				JSON.stringify({
+					error: 'Body inválido o vacío',
 					details: jsonError instanceof Error ? jsonError.message : 'Unknown error'
 				}),
 				{ status: 400, headers: { 'Content-Type': 'application/json' } }
 			);
 		}
 
-		console.log('📥 Request recibido:', { 
-			date: body.date, 
-			time: body.time, 
+		console.log('📥 Request recibido:', {
+			date: body.date,
+			time: body.time,
 			operationType: body.operationType,
 			hasName: !!body.name,
 			hasEmail: !!body.email
@@ -72,10 +72,23 @@ export const POST: APIRoute = async ({ request }) => {
 			);
 		}
 
-		// Verificar disponibilidad
+		// Verificar disponibilidad (pero no bloquear si hay errores)
 		const availability = await AppointmentsService.checkSlotAvailability(slot.id);
-		
-		if (!availability.available) {
+
+		console.log('🔍 Verificación de disponibilidad:', {
+			slotId: slot.id,
+			available: availability.available,
+			bookedCount: availability.bookedCount,
+			capacity: availability.capacity,
+			hasError: !!availability.error,
+			slotBooked: slot.booked,
+		});
+
+		// Solo marcar como completo si:
+		// 1. Realmente está lleno (bookedCount >= capacity)
+		// 2. NO hay errores en la verificación
+		// 3. El contador real es mayor o igual a la capacidad
+		if (!availability.available && availability.error === null && availability.bookedCount >= availability.capacity) {
 			console.warn('⚠️ Slot completo:', {
 				slotId: slot.id,
 				bookedCount: availability.bookedCount,
@@ -87,6 +100,29 @@ export const POST: APIRoute = async ({ request }) => {
 				}),
 				{ status: 409 }
 			);
+		}
+
+		// Si hay error en la verificación, permitir crear la cita (confiar en el contador del slot como fallback)
+		if (availability.error) {
+			console.warn('⚠️ Error al verificar disponibilidad, usando contador del slot como fallback:', availability.error.message);
+			// Verificar el contador del slot directamente como fallback
+			if (slot.booked >= slot.capacity) {
+				console.warn('⚠️ Slot marcado como lleno según contador del slot:', {
+					slotId: slot.id,
+					booked: slot.booked,
+					capacity: slot.capacity
+				});
+				return new Response(
+					JSON.stringify({
+						error: 'Slot completo. Por favor selecciona otro horario.',
+					}),
+					{ status: 409 }
+				);
+			}
+			// Si hay error pero el slot parece disponible, continuar
+			console.log('✅ Slot disponible según contador, continuando...');
+		} else if (availability.available) {
+			console.log('✅ Slot disponible según verificación, continuando...');
 		}
 
 		// Crear cita
@@ -127,7 +163,7 @@ export const POST: APIRoute = async ({ request }) => {
 		console.error('❌ API Error completo:', error);
 		const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		const errorStack = error instanceof Error ? error.stack : undefined;
-		
+
 		return new Response(
 			JSON.stringify({
 				error: 'Internal server error',

@@ -42,6 +42,8 @@ export function PropertyAppointmentModal({
 	const [selectedTime, setSelectedTime] = useState<string | null>(null);
 	const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
 
 	const formatDateLocal = (date: Date): string => {
@@ -96,17 +98,19 @@ export function PropertyAppointmentModal({
 	};
 
 	const handleFormSubmit = async (data: any): Promise<void> => {
+		setIsSubmitting(true);
+		setSuccessMessage(null);
+
 		let propertyId: string | null = null;
 
 		// Si la propiedad tiene 'id' (propiedad de Supabase), usar ese directamente
 		if (property && 'id' in property && typeof property.id === 'string') {
 			propertyId = property.id;
+			console.log('✅ Usando propiedad existente de Supabase:', propertyId);
 		} else if (property && property.public_id) {
 			// Si es una propiedad de Easy Broker, buscar o crear en Supabase
 			try {
-				// Primero, intentar buscar si ya existe una propiedad con este public_id
-				// (asumiendo que guardamos el public_id en un campo o en las notas)
-				// Por ahora, intentamos crear/sincronizar la propiedad en Supabase
+				console.log('🔄 Sincronizando propiedad de Easy Broker con Supabase...');
 				const propertyResponse = await fetch('/api/properties/sync-easybroker', {
 					method: 'POST',
 					headers: {
@@ -130,23 +134,31 @@ export function PropertyAppointmentModal({
 				if (propertyResponse.ok) {
 					const result = await propertyResponse.json();
 					propertyId = result.property?.id || null;
+					console.log('✅ Propiedad sincronizada exitosamente:', propertyId);
+				} else {
+					const errorResult = await propertyResponse.json();
+					console.warn('⚠️ Error al sincronizar propiedad:', errorResult);
 				}
 			} catch (error) {
-				console.warn('No se pudo sincronizar la propiedad con Supabase:', error);
+				console.warn('⚠️ No se pudo sincronizar la propiedad con Supabase:', error);
 				// Continuar sin propertyId, pero guardar info en notas
 			}
 		}
 
 		// Agregar información de la propiedad a los datos de la cita
+		// Incluir public_id de Easy Broker en las notas para poder buscar la imagen después
+		const notesWithProperty = property
+			? `${data.notes || ''}\n\nPropiedad: ${property.title}${property.location ? `\nDirección: ${typeof property.location === 'string' ? property.location : property.location.address || property.location.city || ''}` : ''}${property.public_id ? `\nEasy Broker ID: ${property.public_id}` : ''}${property.title_image_thumb || property.title_image_full ? `\nImagen: ${property.title_image_thumb || property.title_image_full}` : ''}`.trim()
+			: data.notes;
+
 		const appointmentData = {
 			...data,
 			propertyId: propertyId,
-			notes: property
-				? `${data.notes || ''}\n\nPropiedad: ${property.title}${property.location ? `\nDirección: ${typeof property.location === 'string' ? property.location : property.location.address || property.location.city || ''}` : ''}${property.public_id ? `\nEasy Broker ID: ${property.public_id}` : ''}`.trim()
-				: data.notes,
+			notes: notesWithProperty,
 		};
 
 		try {
+			console.log('📤 Enviando datos de cita al servidor...');
 			const response = await fetch('/api/appointments', {
 				method: 'POST',
 				headers: {
@@ -158,19 +170,48 @@ export function PropertyAppointmentModal({
 			const result = await response.json();
 
 			if (!response.ok) {
-				alert(result.error || 'Error al crear la cita');
+				console.error('❌ Error al crear cita:', result);
+				setIsSubmitting(false);
+				alert(result.error || result.details || 'Error al crear la cita');
 				return;
 			}
 
+			console.log('✅ Cita creada exitosamente:', result);
+
+			// Mostrar mensaje de éxito
+			const propertyTitle = property?.title || 'la propiedad';
+			const dateStr = selectedDate?.toLocaleDateString('es-ES', {
+				weekday: 'long',
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric',
+			}) || data.date;
+			const timeStr = selectedTime || data.time;
+
+			setSuccessMessage(
+				`¡Cita creada exitosamente para ${propertyTitle} el ${dateStr} a las ${timeStr}!`
+			);
+
+			// Recargar disponibilidad para actualizar los slots
 			await loadAvailability();
-			onSuccess();
-			onClose();
-			setCurrentStep(1);
-			setSelectedDate(null);
-			setSelectedTime(null);
+
+			// Esperar 2 segundos para que el usuario vea el mensaje de éxito
+			setTimeout(() => {
+				// Notificar éxito y cerrar modal
+				onSuccess();
+				onClose();
+
+				// Resetear estado
+				setCurrentStep(1);
+				setSelectedDate(null);
+				setSelectedTime(null);
+				setSuccessMessage(null);
+				setIsSubmitting(false);
+			}, 2000);
 		} catch (error) {
-			console.error('Error al crear cita:', error);
-			alert('Error al crear la cita. Intenta nuevamente.');
+			console.error('❌ Error al crear cita:', error);
+			setIsSubmitting(false);
+			alert('Error de conexión al crear la cita. Por favor verifica tu conexión e intenta nuevamente.');
 		}
 	};
 
@@ -291,6 +332,35 @@ export function PropertyAppointmentModal({
 
 					{/* Contenido */}
 					<div className="flex-1 overflow-y-auto p-6">
+						{/* Mensaje de éxito */}
+						{successMessage && (
+							<div className="mb-6 rounded-xl bg-green-50 border-2 border-green-200 p-4">
+								<div className="flex items-start gap-3">
+									<svg
+										className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5"
+										fill="none"
+										viewBox="0 0 24 24"
+										stroke="currentColor"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+										/>
+									</svg>
+									<div className="flex-1">
+										<p className="text-green-800 font-semibold text-lg">
+											¡Cita creada exitosamente!
+										</p>
+										<p className="text-green-700 text-sm mt-1">
+											{successMessage}
+										</p>
+									</div>
+								</div>
+							</div>
+						)}
+
 						{currentStep === 1 && (
 							<CalendarCRM
 								availableSlots={availableSlots}
@@ -344,7 +414,7 @@ export function PropertyAppointmentModal({
 		);
 
 		render(<ModalContent />, modalRoot);
-	}, [modalRoot, isOpen, property, currentStep, selectedDate, selectedTime, availableSlots, slotsForSelectedDate, isLoading, onClose, onSuccess]);
+	}, [modalRoot, isOpen, property, currentStep, selectedDate, selectedTime, availableSlots, slotsForSelectedDate, isLoading, isSubmitting, successMessage, onClose, onSuccess]);
 
 	return null;
 }

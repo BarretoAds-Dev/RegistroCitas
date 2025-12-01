@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase } from '../../../core/config/supabase';
+import { supabase, supabaseAdmin } from '../../../core/config/supabase';
 import type { Database } from '../../../core/types/database';
 
 type PropertyInsert = Database['public']['Tables']['properties']['Insert'];
@@ -32,8 +32,11 @@ export const POST: APIRoute = async ({ request }) => {
 			);
 		}
 
+		// Usar cliente admin para bypass RLS en operaciones del servidor
+		const client = supabaseAdmin || supabase;
+
 		// Buscar si ya existe una propiedad con el mismo título y dirección
-		const { data: existingProperty, error: searchError } = await supabase
+		const { data: existingProperty, error: searchError } = await client
 			.from('properties')
 			.select('id')
 			.eq('title', body.title)
@@ -72,7 +75,7 @@ export const POST: APIRoute = async ({ request }) => {
 			status: 'active',
 		};
 
-		const { data: newProperty, error: insertError } = await supabase
+		const { data: newProperty, error: insertError } = await client
 			.from('properties')
 			.insert(propertyData as any)
 			.select()

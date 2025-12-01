@@ -26,6 +26,8 @@ interface Property {
 	address: string;
 	price: number;
 	property_type: string;
+	imageUrl?: string | null;
+	public_id?: string; // Para propiedades de Easy Broker
 }
 
 // Componente para selector de propiedades agrupadas por colonia
@@ -185,6 +187,8 @@ export default function AppointmentFormCRM({
 									: prop.location?.address || prop.location?.city || prop.address || 'Dirección no disponible',
 								price: price,
 								property_type: prop.property_type || 'casa',
+								imageUrl: prop.title_image_thumb || prop.title_image_full || prop.images?.[0]?.url || null,
+								public_id: prop.public_id,
 							});
 						});
 					}
@@ -200,6 +204,8 @@ export default function AppointmentFormCRM({
 								address: prop.address,
 								price: prop.price,
 								property_type: prop.property_type || 'casa',
+								imageUrl: null, // Propiedades de Supabase no tienen imagen por ahora
+								public_id: prop.features?.easybroker_public_id || null,
 							});
 						});
 					}
@@ -314,6 +320,20 @@ export default function AppointmentFormCRM({
 
 		const dateStr = formatDateLocal(selectedDate);
 
+		// Obtener información de la propiedad seleccionada para incluir en las notas
+		const selectedProperty = preselectedProperty || properties.find(p => p.id === selectedPropertyId);
+		let notesWithProperty = formData.get('notes') || '';
+
+		if (selectedProperty) {
+			const propertyInfo = [
+				`\n\nPropiedad: ${selectedProperty.title}`,
+				selectedProperty.address ? `\nDirección: ${selectedProperty.address}` : '',
+				selectedProperty.public_id ? `\nEasy Broker ID: ${selectedProperty.public_id}` : '',
+				selectedProperty.imageUrl ? `\nImagen: ${selectedProperty.imageUrl}` : '',
+			].filter(Boolean).join('');
+			notesWithProperty = `${notesWithProperty}${propertyInfo}`.trim();
+		}
+
 		const appointmentData: any = {
 			date: dateStr,
 			time: selectedTime,
@@ -321,7 +341,7 @@ export default function AppointmentFormCRM({
 			email: formData.get('email') || '',
 			phone: formData.get('phone') || '',
 			operationType: formData.get('operationType') || '',
-			notes: formData.get('notes') || '',
+			notes: notesWithProperty,
 			propertyId: preselectedProperty?.id || selectedPropertyId || null,
 		};
 
