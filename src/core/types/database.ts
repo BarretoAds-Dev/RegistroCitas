@@ -74,12 +74,7 @@ export type Database = {
 
 // Tipos exportados para uso en componentes
 export type Tables = Database['public']['Tables'];
-export type Appointment = Tables['appointments']['Row'];
-export type AppointmentInsert = Tables['appointments']['Insert'];
-export type AppointmentUpdate = Tables['appointments']['Update'];
 export type AvailabilitySlot = Tables['availability_slots']['Row'];
 export type AvailabilitySlotInsert = Tables['availability_slots']['Insert'];
 export type AvailabilitySlotUpdate = Tables['availability_slots']['Update'];
-export type Agent = Tables['agents']['Row'];
 export type Holiday = Tables['holidays']['Row'];
-

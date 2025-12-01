@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import { useState } from 'preact/hooks';
-import { validateAppointmentClient } from '../../../shared/utils/validation';
+import { validateAppointmentClient } from '../../../core/utils/validation';
 
 type AppointmentFormData = any;
 

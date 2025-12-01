@@ -1,5 +1,6 @@
-// Constantes para formularios de citas
+// Constantes globales del sistema
 
+// Constantes para formularios de citas
 export const BUDGET_OPTIONS_RENTAR = [
 	{ value: '20000-30000', label: '$20,000 - $30,000 MXN' },
 	{ value: '30000-40000', label: '$30,000 - $40,000 MXN' },
@@ -62,4 +63,9 @@ export const OPERATION_TYPES = [
 	{ value: 'rentar', label: 'Rentar' },
 	{ value: 'comprar', label: 'Comprar' },
 ];
+
+// Constantes de configuración de la aplicación
+export const DEFAULT_AGENT_ID = '00000000-0000-0000-0000-000000000001';
+export const DEFAULT_SLOT_DURATION = 45; // minutos
+export const DEFAULT_BUFFER_TIME = 5; // minutos
 

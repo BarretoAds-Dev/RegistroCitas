@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { validateAppointment } from '../../features/appointments/schemas';
-import { AppointmentsService } from '../../lib/services/appointments.service';
+import { validateAppointment } from '../../../features/appointments/schemas/appointment.schema';
+import { AppointmentsService } from '../../../features/appointments/services/appointment.service';
 
 export const prerender = false;
 

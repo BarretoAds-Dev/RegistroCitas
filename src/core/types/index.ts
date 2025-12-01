@@ -1,3 +1,5 @@
-// Exportar todos los tipos de base de datos
+// Exportar todos los tipos
 export * from './database';
-
+export * from './appointment';
+export * from './user';
+export * from './forms';

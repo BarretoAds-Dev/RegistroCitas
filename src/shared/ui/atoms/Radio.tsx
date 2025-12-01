@@ -6,7 +6,7 @@ interface RadioOption {
 	description?: string;
 }
 
-interface RadioGroupProps {
+interface RadioProps {
 	name: string;
 	options: RadioOption[];
 	value?: string;
@@ -16,7 +16,7 @@ interface RadioGroupProps {
 	className?: string;
 }
 
-export default function RadioGroup({
+export default function Radio({
 	name,
 	options,
 	value,
@@ -24,7 +24,7 @@ export default function RadioGroup({
 	error,
 	touched = false,
 	className = '',
-}: RadioGroupProps) {
+}: RadioProps) {
 	const hasError = touched && error;
 	
 	return (

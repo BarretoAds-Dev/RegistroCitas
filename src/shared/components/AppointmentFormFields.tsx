@@ -1,5 +1,5 @@
 /** @jsxImportSource preact */
-import { Button, Input, Select, FormField, RadioGroup, ErrorMessage } from '../ui';
+import { Button, Input, Select, FormField, Radio, ErrorMessage } from '../ui';
 import {
 	BUDGET_OPTIONS_RENTAR,
 	BUDGET_OPTIONS_COMPRAR,
@@ -8,7 +8,7 @@ import {
 	MODALIDADES_INFONAVIT,
 	MODALIDADES_FOVISSSTE,
 	OPERATION_TYPES,
-} from '../../core/constants/appointments';
+} from '../../core/config/constants';
 
 interface AppointmentFormFieldsProps {
 	operationType: 'rentar' | 'comprar' | '';
@@ -42,7 +42,7 @@ export default function AppointmentFormFields({
 				error={errors.operationType}
 				touched={touched.operationType}
 			>
-				<RadioGroup
+				<Radio
 					name="operationType"
 					options={OPERATION_TYPES}
 					value={operationType}
@@ -156,7 +156,7 @@ export default function AppointmentFormFields({
 								error={errors.creditoPreaprobado}
 								touched={touched.creditoPreaprobado}
 							>
-								<RadioGroup
+								<Radio
 									name="creditoPreaprobado"
 									options={[
 										{ value: 'si', label: 'Sí' },

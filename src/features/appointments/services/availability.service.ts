@@ -1,5 +1,5 @@
-import { supabase } from '../../core/config/supabase';
-import type { AvailabilitySlot } from '../../core/types/database';
+import { supabase } from '../../../core/config/supabase';
+import type { AvailabilitySlot } from '../../../core/types';
 
 /**
  * Servicio para gestionar disponibilidad de slots

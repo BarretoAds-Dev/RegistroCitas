@@ -1,6 +1,6 @@
-import { supabase } from '../../core/config/supabase';
-import type { AppointmentInsert, AvailabilitySlot } from '../../core/types/database';
-import type { AppointmentFormData } from '../../features/appointments/schemas';
+import { supabase } from '../../../core/config/supabase';
+import type { AppointmentInsert, AvailabilitySlot } from '../../../core/types';
+import type { AppointmentFormData } from '../schemas/appointment.schema';
 
 /**
  * Servicio para gestionar citas

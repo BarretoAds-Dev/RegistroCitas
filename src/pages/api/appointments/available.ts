@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { AvailabilityService } from '../../lib/services/availability.service';
+import { AvailabilityService } from '../../../features/appointments/services/availability.service';
 
 export const GET: APIRoute = async ({ url }) => {
 	const startDate = url.searchParams.get('start') || new Date().toISOString().split('T')[0];
