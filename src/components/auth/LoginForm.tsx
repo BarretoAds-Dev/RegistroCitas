@@ -1,18 +1,63 @@
 /** @jsxImportSource preact */
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { supabaseAuth } from '../../config/supabase/auth';
 
 export default function LoginForm() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [rememberMe, setRememberMe] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isSuccess, setIsSuccess] = useState(false);
 	const [emailError, setEmailError] = useState<string | null>(null);
+	const [passwordError, setPasswordError] = useState<string | null>(null);
+
+	// Cargar email guardado al montar el componente
+	useEffect(() => {
+		const savedEmail = localStorage.getItem('remembered_email');
+		if (savedEmail) {
+			setEmail(savedEmail);
+			setRememberMe(true);
+		}
+	}, []);
 
 	const validateEmail = (email: string): boolean => {
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		return emailRegex.test(email);
+	};
+
+	const validatePassword = (password: string): string | null => {
+		// Longitud mínima (según configuración de Supabase: 6 caracteres)
+		if (password.length < 6) {
+			return 'La contraseña debe tener al menos 6 caracteres';
+		}
+
+		// Validaciones adicionales de seguridad
+		if (password.length < 8) {
+			// Advertencia pero no error para contraseñas de 6-7 caracteres
+			return null; // Permitimos pero recomendamos más
+		}
+
+		// Verificar si es una contraseña común/débil
+		const commonPasswords = [
+			'password', '123456', '12345678', 'qwerty', 'abc123',
+			'password123', 'admin', 'letmein', 'welcome', 'monkey'
+		];
+		
+		if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
+			return 'Esta contraseña es muy común. Por favor usa una más segura';
+		}
+
+		// Verificar si es solo números o solo letras
+		if (/^\d+$/.test(password)) {
+			return 'La contraseña no debe contener solo números';
+		}
+
+		if (/^[a-zA-Z]+$/.test(password)) {
+			return 'La contraseña debe contener números o caracteres especiales';
+		}
+
+		return null; // Contraseña válida
 	};
 
 	const handleEmailChange = (value: string) => {
@@ -24,6 +69,12 @@ export default function LoginForm() {
 		}
 	};
 
+	const handlePasswordChange = (value: string) => {
+		setPassword(value);
+		const validationError = validatePassword(value);
+		setPasswordError(validationError);
+	};
+
 	const handleSubmit = async (e: Event) => {
 		e.preventDefault();
 		
@@ -32,10 +83,18 @@ export default function LoginForm() {
 			setEmailError('Por favor ingresa un correo electrónico válido');
 			return;
 		}
+
+		// Validar contraseña antes de enviar
+		const passwordValidation = validatePassword(password);
+		if (passwordValidation) {
+			setPasswordError(passwordValidation);
+			return;
+		}
 		
 		setIsLoading(true);
 		setError(null);
 		setEmailError(null);
+		setPasswordError(null);
 		setIsSuccess(false);
 
 		try {
@@ -51,18 +110,17 @@ export default function LoginForm() {
 			}
 
 			if (data.user && data.session) {
-				// Guardar tokens en localStorage para persistencia
-				if (data.session.access_token) {
-					localStorage.setItem('sb-access-token', data.session.access_token);
+				// Guardar email si "Recordarme" está activado
+				if (rememberMe) {
+					localStorage.setItem('remembered_email', email);
+				} else {
+					localStorage.removeItem('remembered_email');
 				}
-				if (data.session.refresh_token) {
-					localStorage.setItem('sb-refresh-token', data.session.refresh_token);
-				}
-				
+
 				setIsSuccess(true);
 				// Redirigir al CRM después de un breve delay con transición suave
 				setTimeout(() => {
-					window.location.href = '/crm/CRMDashboard';
+					window.location.href = '/crm/crmdashboard';
 				}, 800);
 			}
 		} catch (err) {
@@ -135,12 +193,41 @@ export default function LoginForm() {
 								id="password"
 								type="password"
 								value={password}
-								onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
+								onInput={(e) => handlePasswordChange((e.target as HTMLInputElement).value)}
 								required
 								disabled={isLoading}
-								class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+								class={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 ${
+									passwordError 
+										? 'border-red-300 focus:ring-red-500 bg-red-50' 
+										: 'border-gray-300 focus:ring-gray-900'
+								}`}
 								placeholder="••••••••"
 							/>
+							{passwordError && (
+								<p class="mt-1 text-xs text-red-600">{passwordError}</p>
+							)}
+							{password && !passwordError && password.length >= 6 && (
+								<p class="mt-1 text-xs text-gray-500">
+									{password.length < 8 
+										? '💡 Recomendamos usar al menos 8 caracteres para mayor seguridad'
+										: '✓ Contraseña válida'}
+								</p>
+							)}
+						</div>
+
+						{/* Recordarme */}
+						<div class="flex items-center">
+							<input
+								id="remember-me"
+								type="checkbox"
+								checked={rememberMe}
+								onChange={(e) => setRememberMe((e.target as HTMLInputElement).checked)}
+								disabled={isLoading}
+								class="h-4 w-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900 focus:ring-2 cursor-pointer disabled:opacity-50"
+							/>
+							<label for="remember-me" class="ml-2 text-sm text-gray-700 cursor-pointer select-none">
+								Recordarme
+							</label>
 						</div>
 
 						{/* Botón de envío */}

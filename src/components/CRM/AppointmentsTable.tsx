@@ -235,14 +235,14 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 							<button
 								onClick={() => setDeleteConfirmId(null)}
 								disabled={updatingId === deleteConfirmId}
-								class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+								class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-all duration-150 shadow-md hover:shadow-lg disabled:opacity-50"
 							>
 								Cancelar
 							</button>
 							<button
 								onClick={confirmDelete}
 								disabled={updatingId === deleteConfirmId}
-								class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50 flex items-center gap-2"
+								class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-all duration-150 shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
 							>
 								{updatingId === deleteConfirmId ? (
 									<>
@@ -320,7 +320,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleStatusUpdate(apt.id, 'confirmed')}
 														disabled={updatingId === apt.id}
-														class="p-1 text-green-600 hover:bg-green-50 hover:border-green-300 disabled:text-green-400 disabled:border-green-200 border border-green-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-green-600 hover:bg-green-50 hover:border-green-300 disabled:text-green-400 disabled:border-green-200 border border-green-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Confirmar cita"
 													>
 														{updatingId === apt.id ? (
@@ -336,7 +336,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleStatusUpdate(apt.id, 'cancelled')}
 														disabled={updatingId === apt.id}
-														class="p-1 text-red-600 hover:bg-red-50 hover:border-red-300 disabled:text-red-400 disabled:border-red-200 border border-red-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-red-600 hover:bg-red-50 hover:border-red-300 disabled:text-red-400 disabled:border-red-200 border border-red-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Cancelar cita"
 													>
 														{updatingId === apt.id ? (
@@ -352,7 +352,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleDeleteAppointment(apt.id)}
 														disabled={updatingId === apt.id}
-														class="p-1 text-gray-500 hover:bg-gray-50 hover:border-gray-300 disabled:text-gray-300 disabled:border-gray-200 border border-gray-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-gray-500 hover:bg-gray-50 hover:border-gray-300 disabled:text-gray-300 disabled:border-gray-200 border border-gray-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Eliminar cita"
 													>
 														{updatingId === apt.id ? (
@@ -372,7 +372,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleStatusUpdate(apt.id, 'cancelled')}
 														disabled={updatingId === apt.id}
-														class="p-1 text-red-600 hover:bg-red-50 hover:border-red-300 disabled:text-red-400 disabled:border-red-200 border border-red-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-red-600 hover:bg-red-50 hover:border-red-300 disabled:text-red-400 disabled:border-red-200 border border-red-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Cancelar cita"
 													>
 														{updatingId === apt.id ? (
@@ -388,7 +388,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleDeleteAppointment(apt.id)}
 														disabled={updatingId === apt.id}
-														class="p-1 text-gray-500 hover:bg-gray-50 hover:border-gray-300 disabled:text-gray-300 disabled:border-gray-200 border border-gray-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-gray-500 hover:bg-gray-50 hover:border-gray-300 disabled:text-gray-300 disabled:border-gray-200 border border-gray-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Eliminar cita"
 													>
 														{updatingId === apt.id ? (
@@ -408,7 +408,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleStatusUpdate(apt.id, 'confirmed')}
 														disabled={updatingId === apt.id}
-														class="p-1 text-green-600 hover:bg-green-50 hover:border-green-300 disabled:text-green-400 disabled:border-green-200 border border-green-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-green-600 hover:bg-green-50 hover:border-green-300 disabled:text-green-400 disabled:border-green-200 border border-green-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Reconfirmar cita"
 													>
 														{updatingId === apt.id ? (
@@ -424,7 +424,7 @@ export default function AppointmentsTable({ appointments, isLoading, onStatusCha
 													<button
 														onClick={() => handleDeleteAppointment(apt.id)}
 														disabled={updatingId === apt.id}
-														class="p-1 text-gray-500 hover:bg-gray-50 hover:border-gray-300 disabled:text-gray-300 disabled:border-gray-200 border border-gray-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-sm hover:shadow"
+														class="p-1 text-gray-500 hover:bg-gray-50 hover:border-gray-300 disabled:text-gray-300 disabled:border-gray-200 border border-gray-200 rounded-md transition-all duration-150 disabled:cursor-not-allowed flex-shrink-0 shadow-md hover:shadow-lg"
 														title="Eliminar cita"
 													>
 														{updatingId === apt.id ? (
