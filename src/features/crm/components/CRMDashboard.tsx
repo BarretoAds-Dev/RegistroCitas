@@ -70,11 +70,6 @@ export default function CRMApp() {
 	// Filtrar citas según la búsqueda y filtros avanzados
 	const filteredAppointments = useMemo(() => {
 		let filtered = [...appointments];
-		
-		console.log('🔍 Filtering appointments. Total:', appointments.length);
-		console.log('📋 Search query:', searchQuery);
-		console.log('📋 Advanced filters:', advancedFilters);
-		console.log('📋 Status filter:', statusFilter);
 
 		// Aplicar búsqueda rápida
 		if (searchQuery.trim()) {
@@ -87,7 +82,6 @@ export default function CRMApp() {
 				
 				return nameMatch || emailMatch || phoneMatch || propertyMatch;
 			});
-			console.log('🔍 After search filter:', filtered.length);
 		}
 
 		// Aplicar filtros avanzados
@@ -177,7 +171,6 @@ export default function CRMApp() {
 			}
 		}
 
-		console.log('✅ Final filtered appointments:', filtered.length);
 		return filtered;
 	}, [appointments, searchQuery, advancedFilters, statusFilter]);
 
@@ -186,23 +179,18 @@ export default function CRMApp() {
 		setError(null);
 		try {
 			const url = `/api/crm/appointments-list${statusFilter !== 'all' ? `?status=${statusFilter}` : ''}`;
-			console.log('🔍 Fetching appointments from:', url);
 			const response = await fetch(url);
 			if (response.ok) {
 				const data = await response.json();
-				console.log('✅ Appointments received:', data.length, 'citas');
-				console.log('📋 Data:', data);
-				setAppointments(data);
+				setAppointments(data || []);
 			} else {
 				const errorData = await response.json().catch(() => ({}));
 				const errorMsg = errorData.error || errorData.message || 'Error al cargar las citas';
 				setError(errorMsg);
-				console.error('❌ Error al cargar citas:', errorData);
 			}
 		} catch (error) {
 			const errorMsg = 'Error de conexión. Por favor verifica tu conexión e intenta nuevamente.';
 			setError(errorMsg);
-			console.error('❌ Error al cargar citas:', error);
 		} finally {
 			setIsLoading(false);
 		}
