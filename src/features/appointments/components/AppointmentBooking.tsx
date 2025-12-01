@@ -161,14 +161,14 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 					{currentStep === 2 && (
 						<>
 							{successMessage && (
-								<div class="mb-6 bg-green-500/20 border-2 border-green-500/50 backdrop-blur-xl p-4 rounded animate-pulse">
+								<div class="mb-6 bg-green-50 border border-green-200 p-4 rounded-lg">
 									<div class="flex items-center gap-3">
-										<svg class="w-6 h-6 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="w-6 h-6 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 										</svg>
 										<div class="flex-1">
-											<p class="text-green-200 text-sm font-semibold">{successMessage}</p>
-											<p class="text-green-300 text-xs mt-1">El horario seleccionado ahora aparece en rojo (ocupado).</p>
+											<p class="text-green-800 text-sm font-semibold">{successMessage}</p>
+											<p class="text-green-700 text-xs mt-1">El horario seleccionado ahora aparece como ocupado.</p>
 										</div>
 									</div>
 								</div>
