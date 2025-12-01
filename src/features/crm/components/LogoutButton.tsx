@@ -5,9 +5,10 @@ import { supabaseAuth } from '../../../core/config/auth';
 
 interface LogoutButtonProps {
 	showChangeUser?: boolean;
+	isCollapsed?: boolean;
 }
 
-export default function LogoutButton({ showChangeUser = false }: LogoutButtonProps) {
+export default function LogoutButton({ showChangeUser = false, isCollapsed = false }: LogoutButtonProps) {
 	const [isLoading, setIsLoading] = useState(false);
 	const [showConfirm, setShowConfirm] = useState(false);
 
@@ -152,30 +153,38 @@ export default function LogoutButton({ showChangeUser = false }: LogoutButtonPro
 				<button
 					onClick={handleChangeUser}
 					disabled={isLoading}
-					class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all duration-150 text-gray-500 hover:bg-gray-50 shadow-md hover:shadow-lg disabled:opacity-50"
-					title="Cambiar de usuario"
+					class={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 text-gray-500 hover:bg-gray-50 shadow-md hover:shadow-lg disabled:opacity-50 ${
+						isCollapsed ? 'lg:justify-center lg:px-2 lg:py-2.5' : 'text-left'
+					}`}
+					title={isCollapsed ? 'Cambiar de usuario' : ''}
 				>
 					<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 0a2 2 0 00-2 2v9a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2m-6 0V5a2 2 0 012-2h4a2 2 0 012 2v2" />
 					</svg>
-					<span class="text-xs whitespace-nowrap font-normal">
-						{isLoading ? 'Cambiando...' : 'Cambiar de usuario'}
-					</span>
+					{!isCollapsed && (
+						<span class="text-xs whitespace-nowrap font-normal">
+							{isLoading ? 'Cambiando...' : 'Cambiar de usuario'}
+						</span>
+					)}
 				</button>
 			) : (
 				<button
 					onClick={() => setShowConfirm(true)}
 					disabled={isLoading}
-					class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-all duration-150 text-gray-500 hover:bg-gray-50 shadow-md hover:shadow-lg disabled:opacity-50"
-					title="Cerrar sesión"
+					class={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-150 text-gray-500 hover:bg-gray-50 shadow-md hover:shadow-lg disabled:opacity-50 ${
+						isCollapsed ? 'lg:justify-center lg:px-2 lg:py-2.5' : 'text-left'
+					}`}
+					title={isCollapsed ? 'Cerrar sesión' : ''}
 				>
 					<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
 					</svg>
-					<span class="text-xs whitespace-nowrap font-normal">
-						{isLoading ? 'Cerrando...' : 'Cerrar sesión'}
-					</span>
+					{!isCollapsed && (
+						<span class="text-xs whitespace-nowrap font-normal">
+							{isLoading ? 'Cerrando...' : 'Cerrar sesión'}
+						</span>
+					)}
 				</button>
 			)}
 		</>

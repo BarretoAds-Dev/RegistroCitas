@@ -160,13 +160,9 @@ export default function Sidebar({ currentView, onViewChange, isOpen = false, onC
 						)}
 					</button>
 					{/* Botón de cambiar usuario */}
-					<div class={isCollapsed ? 'lg:hidden' : ''}>
-						<LogoutButton showChangeUser={true} />
-					</div>
+					<LogoutButton showChangeUser={true} isCollapsed={isCollapsed} />
 					{/* Botón de logout */}
-					<div class={isCollapsed ? 'lg:hidden' : ''}>
-						<LogoutButton />
-					</div>
+					<LogoutButton isCollapsed={isCollapsed} />
 				</div>
 			</div>
 		</aside>
