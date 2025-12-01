@@ -18,6 +18,7 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 	const [currentStep, setCurrentStep] = useState<Step>(1);
 	const [selectedDate, setSelectedDate] = useState<string | null>(null);
 	const [selectedTime, setSelectedTime] = useState<string | null>(null);
+	const [selectedProperty, setSelectedProperty] = useState<any>(null);
 	const [appointmentData, setAppointmentData] = useState<any>(null);
 	const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>(initialAvailableSlots);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -41,14 +42,14 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 	// Función optimizada para refrescar disponibilidad
 	const refreshAvailability = async () => {
 		if (isRefreshing) return; // Evitar llamadas simultáneas
-		
+
 		setIsRefreshing(true);
 		try {
 			const startDate = new Date().toISOString().split('T')[0];
 			const endDate = new Date();
 			endDate.setMonth(endDate.getMonth() + 6);
 			const endDateStr = endDate.toISOString().split('T')[0];
-			
+
 			const response = await fetch(`/api/appointments/available?start=${startDate}&end=${endDateStr}`);
 			if (response.ok) {
 				const refreshedSlots = await response.json();
@@ -79,24 +80,27 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 
 	const handleFormSubmit = async (data: any) => {
 		setAppointmentData(data);
-		
-		// Refrescar disponibilidad inmediatamente después de crear la cita
-		// Esto asegura que el slot se marque como ocupado
-		refreshAvailability();
-		
-		// Mostrar mensaje de éxito y volver a la selección de horarios
-		// para que el usuario vea que el slot está en rojo
+
+		// Mostrar mensaje de éxito INMEDIATAMENTE
 		setSuccessMessage(`¡Cita creada exitosamente para ${data.date} a las ${data.time}!`);
-		setSelectedTime(null); // Limpiar la selección de hora
-		setCurrentStep(2); // Volver a la selección de horarios
-		
-		// Ocultar el mensaje después de 5 segundos y volver al inicio
+
+		// Limpiar selecciones y volver al calendario
+		setSelectedTime(null);
+		setSelectedDate(null);
+		setCurrentStep(1);
+
+		// Refrescar disponibilidad EN SEGUNDO PLANO (sin bloquear UI)
+		// Esperar un momento para que la DB se actualice
+		setTimeout(() => {
+			refreshAvailability().catch(err => {
+				console.warn('Error al refrescar disponibilidad:', err);
+				// No mostrar error al usuario, es solo refresh de fondo
+			});
+		}, 1000);
+
+		// Ocultar el mensaje después de 5 segundos
 		setTimeout(() => {
 			setSuccessMessage(null);
-			// Volver al paso 1 (calendario) después de que desaparezca el mensaje
-			setCurrentStep(1);
-			setSelectedDate(null);
-			setSelectedTime(null);
 		}, 5000);
 	};
 
@@ -147,17 +151,17 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 	return (
 		<>
 			<ProgressIndicator currentStep={currentStep} />
-			
+
 			<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 				<div class="p-6 md:p-8 lg:p-10">
 					{currentStep === 1 && (
-						<Calendar 
+						<Calendar
 							availableSlots={availableSlots}
 							onDateSelect={handleDateSelect}
 							selectedDate={selectedDate ? parseDateLocal(selectedDate) : null}
 						/>
 					)}
-					
+
 					{currentStep === 2 && (
 						<>
 							{successMessage && (
@@ -182,16 +186,17 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 							/>
 						</>
 					)}
-					
+
 					{currentStep === 3 && (
 						<AppointmentForm
 							selectedDate={selectedDate ? parseDateLocal(selectedDate) : null}
 							selectedTime={selectedTime}
+							selectedProperty={selectedProperty}
 							onBack={handleBackToTime}
 							onSubmit={handleFormSubmit}
 						/>
 					)}
-					
+
 					{currentStep === 4 && (
 						<ConfirmationPanel
 							appointmentData={appointmentData}

@@ -192,10 +192,13 @@ export function PropertyAppointmentModal({
 				`¡Cita creada exitosamente para ${propertyTitle} el ${dateStr} a las ${timeStr}!`
 			);
 
-			// Recargar disponibilidad para actualizar los slots
-			await loadAvailability();
+			// Recargar disponibilidad para actualizar los slots (sin bloquear si falla)
+			loadAvailability().catch((error) => {
+				console.warn('⚠️ Error al recargar disponibilidad (no crítico):', error);
+				// No mostrar error al usuario, solo loguear
+			});
 
-			// Esperar 2 segundos para que el usuario vea el mensaje de éxito
+			// Esperar 2.5 segundos para que el usuario vea el mensaje de éxito
 			setTimeout(() => {
 				// Notificar éxito y cerrar modal
 				onSuccess();
@@ -207,7 +210,7 @@ export function PropertyAppointmentModal({
 				setSelectedTime(null);
 				setSuccessMessage(null);
 				setIsSubmitting(false);
-			}, 2000);
+			}, 2500);
 		} catch (error) {
 			console.error('❌ Error al crear cita:', error);
 			setIsSubmitting(false);

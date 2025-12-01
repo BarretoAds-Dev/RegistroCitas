@@ -28,6 +28,17 @@ export const POST: APIRoute = async ({ request }) => {
 			);
 		}
 
+		// Logs temporales para debugging
+		console.log('📥 Request recibido:', {
+			date: body.date,
+			time: body.time,
+			operationType: body.operationType,
+			hasName: !!body.name,
+			hasEmail: !!body.email
+		});
+
+		console.log('🔍 Datos completos del body:', JSON.stringify(body, null, 2));
+
 		console.log('📥 Request recibido:', {
 			date: body.date,
 			time: body.time,
@@ -53,24 +64,65 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 
 		const formData = validation.data;
-		console.log('✅ Datos validados:', { date: formData.date, time: formData.time });
+		console.log('✅ Datos validados:', {
+			date: formData.date,
+			time: formData.time,
+			email: formData.email,
+			name: formData.name,
+			operationType: formData.operationType,
+		});
 
 		// Buscar slot disponible
+		console.log('🔍 Iniciando búsqueda de slot...');
 		const { slot, error: slotError } = await AppointmentsService.findAvailableSlot(
 			formData.date,
 			formData.time
 		);
 
+		// Logs temporales para debugging
+		console.log('🎯 Resultado de búsqueda de slot:', {
+			slotFound: !!slot,
+			slotId: slot?.id,
+			slotDate: slot?.date,
+			slotTime: slot?.start_time,
+			slotAgentId: slot?.agent_id,
+			slotEnabled: slot?.enabled,
+			slotCapacity: slot?.capacity,
+			slotBooked: slot?.booked,
+			error: slotError?.message
+		});
+
 		if (slotError || !slot) {
-			console.error('❌ Error al buscar slot:', slotError);
+			console.error('❌ Error al buscar slot:', {
+				error: slotError?.message,
+				date: formData.date,
+				time: formData.time,
+				normalizedTime: AppointmentsService.normalizeTime(formData.time),
+			});
 			return new Response(
 				JSON.stringify({
 					error: 'Slot no encontrado o no disponible',
 					details: slotError?.message || 'No se encontró un slot disponible',
+					debug: {
+						date: formData.date,
+						time: formData.time,
+						normalizedTime: AppointmentsService.normalizeTime(formData.time),
+						message: 'Verifica que exista un slot con esta fecha, hora y agent_id en la base de datos',
+					},
 				}),
-				{ status: 404 }
+				{ status: 404, headers: { 'Content-Type': 'application/json' } }
 			);
 		}
+
+		console.log('✅ Slot encontrado:', {
+			slotId: slot.id,
+			date: slot.date,
+			time: slot.start_time,
+			capacity: slot.capacity,
+			booked: slot.booked,
+			enabled: slot.enabled,
+			agent_id: slot.agent_id,
+		});
 
 		// Verificar disponibilidad (pero no bloquear si hay errores)
 		const availability = await AppointmentsService.checkSlotAvailability(slot.id);
@@ -92,11 +144,14 @@ export const POST: APIRoute = async ({ request }) => {
 			console.warn('⚠️ Slot completo:', {
 				slotId: slot.id,
 				bookedCount: availability.bookedCount,
-				capacity: availability.capacity
+				capacity: availability.capacity,
+				date: formData.date,
+				time: formData.time,
+				message: `El slot ya tiene ${availability.bookedCount} cita(s) y su capacidad es ${availability.capacity}. Por favor selecciona otro horario disponible.`
 			});
 			return new Response(
 				JSON.stringify({
-					error: 'Slot completo. Por favor selecciona otro horario.',
+					error: `Slot completo. Ya hay ${availability.bookedCount} cita(s) en este horario. Por favor selecciona otro horario disponible.`,
 				}),
 				{ status: 409 }
 			);

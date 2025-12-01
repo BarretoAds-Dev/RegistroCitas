@@ -6,11 +6,19 @@ import AppointmentFormFields from '../../../shared/components/AppointmentFormFie
 interface AppointmentFormProps {
 	selectedDate: Date | null;
 	selectedTime: string | null;
+	selectedProperty?: {
+		id: string;
+		title: string;
+		location?: string;
+		address?: string;
+		price?: number;
+		image?: string;
+	} | null;
 	onBack: () => void;
 	onSubmit: (data: any) => void;
 }
 
-export default function AppointmentForm({ selectedDate, selectedTime, onBack, onSubmit }: AppointmentFormProps) {
+export default function AppointmentForm({ selectedDate, selectedTime, selectedProperty, onBack, onSubmit }: AppointmentFormProps) {
 	const {
 		operationType,
 		resourceType,
@@ -93,7 +101,8 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 
 			{/* Resumen de selección */}
 			<div class="bg-gradient-to-r from-[#003d82]/30 to-[#004C97]/30 backdrop-blur-xl p-4 mb-6 border-2 border-[#00a0df]/30 shadow-md shadow-black/15">
-				<div class="flex items-center justify-between">
+				{/* Fecha y hora */}
+				<div class="flex items-center justify-between mb-4">
 					<div>
 						<p class="text-xs text-gray-400 mb-1">Fecha seleccionada</p>
 						<p class="text-sm font-semibold text-white">{dateStr.charAt(0).toUpperCase() + dateStr.slice(1)}</p>
@@ -103,6 +112,41 @@ export default function AppointmentForm({ selectedDate, selectedTime, onBack, on
 						<p class="text-sm font-bold text-[#00a0df]">{selectedTime}</p>
 					</div>
 				</div>
+
+				{/* Propiedad de interés (si existe) */}
+				{selectedProperty && (
+					<div class="border-t border-[#00a0df]/20 pt-4">
+						<p class="text-xs text-gray-400 mb-2">Propiedad de interés</p>
+						<div class="flex items-center gap-3">
+							{/* Imagen de la propiedad */}
+							{selectedProperty.image && (
+								<img
+									src={
+										selectedProperty.image.includes('easybroker.com') ||
+										selectedProperty.image.includes('ebimg') ||
+										selectedProperty.image.includes('cloudfront')
+											? `/api/easybroker/image-proxy?url=${encodeURIComponent(selectedProperty.image)}`
+											: selectedProperty.image
+									}
+									alt={selectedProperty.title}
+									class="w-16 h-16 object-cover rounded-lg border border-[#00a0df]/30 flex-shrink-0"
+									onError={(e) => {
+										(e.target as HTMLImageElement).style.display = 'none';
+									}}
+								/>
+							)}
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-medium text-white truncate">{selectedProperty.title}</p>
+								<p class="text-xs text-gray-400 truncate">{selectedProperty.location || selectedProperty.address || ''}</p>
+								{selectedProperty.price && (
+									<p class="text-xs font-bold text-[#00a0df] mt-1">
+										{new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(selectedProperty.price)}
+									</p>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 
 			<form id="appointmentForm" onSubmit={handleSubmit} class="space-y-5">

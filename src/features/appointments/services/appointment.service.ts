@@ -32,6 +32,14 @@ export class AppointmentsService {
 	): Promise<{ slot: AvailabilitySlot | null; error: Error | null }> {
 		const normalizedTime = this.normalizeTime(time);
 		const defaultAgentId = '00000000-0000-0000-0000-000000000001';
+		const finalAgentId = agentId || defaultAgentId;
+
+		console.log('🔍 Buscando slot:', {
+			date,
+			time,
+			normalizedTime,
+			agentId: finalAgentId,
+		});
 
 		try {
 			const { data: slots, error: slotError } = await supabase
@@ -39,14 +47,33 @@ export class AppointmentsService {
 				.select('*')
 				.eq('date', date)
 				.eq('enabled', true)
-				.eq('agent_id', agentId || defaultAgentId)
+				.eq('agent_id', finalAgentId)
 				.limit(10);
 
 			if (slotError) {
+				console.error('❌ Error al buscar slots:', {
+					error: slotError.message,
+					code: slotError.code,
+					details: slotError.details,
+					query: { date, enabled: true, agent_id: finalAgentId },
+				});
 				return { slot: null, error: slotError };
 			}
 
 			const typedSlots = (slots || []) as AvailabilitySlot[];
+
+			console.log('📋 Slots encontrados en DB:', {
+				total: typedSlots.length,
+				slots: typedSlots.map(s => ({
+					id: s.id,
+					date: s.date,
+					start_time: s.start_time,
+					enabled: s.enabled,
+					agent_id: s.agent_id,
+					capacity: s.capacity,
+					booked: s.booked,
+				})),
+			});
 
 			// Filtrar por hora manualmente para manejar diferentes formatos
 			const matchingSlots = typedSlots.filter((slot) => {
@@ -54,15 +81,43 @@ export class AppointmentsService {
 				const slotTime = slot.start_time;
 				const slotTimeShort = slotTime.substring(0, 5);
 				const normalizedTimeShort = normalizedTime.substring(0, 5);
-				return slotTime === normalizedTime || slotTimeShort === normalizedTimeShort;
+				const matches = slotTime === normalizedTime || slotTimeShort === normalizedTimeShort;
+
+				if (matches) {
+					console.log('✅ Slot coincide:', {
+						slotId: slot.id,
+						slotTime,
+						normalizedTime,
+						slotTimeShort,
+						normalizedTimeShort,
+					});
+				}
+
+				return matches;
 			});
 
 			if (matchingSlots.length === 0) {
+				console.warn('⚠️ No se encontraron slots que coincidan:', {
+					date,
+					time,
+					normalizedTime,
+					slotsEncontrados: typedSlots.length,
+					horasEncontradas: typedSlots.map(s => s.start_time),
+				});
 				return { slot: null, error: new Error('Slot no encontrado o no disponible') };
 			}
 
+			console.log('✅ Slot encontrado:', {
+				slotId: matchingSlots[0].id,
+				date: matchingSlots[0].date,
+				time: matchingSlots[0].start_time,
+				capacity: matchingSlots[0].capacity,
+				booked: matchingSlots[0].booked,
+			});
+
 			return { slot: matchingSlots[0], error: null };
 		} catch (error) {
+			console.error('❌ Excepción al buscar slot:', error);
 			return {
 				slot: null,
 				error: error instanceof Error ? error : new Error('Error desconocido al buscar slot'),
@@ -102,7 +157,7 @@ export class AppointmentsService {
 		// Contar citas activas reales (usar cliente admin para contar correctamente)
 		const { data: activeAppointments, error: countError } = await client
 			.from('appointments')
-			.select('id')
+			.select('id, status, created_at, email, name')
 			.eq('slot_id', slotId)
 			.in('status', ['pending', 'confirmed']);
 
@@ -129,6 +184,21 @@ export class AppointmentsService {
 		}
 
 		const actualBookedCount = activeAppointments?.length || 0;
+
+		// Log detallado de las citas encontradas
+		if (actualBookedCount > 0) {
+			console.log('📋 Citas activas encontradas en el slot:', {
+				slotId,
+				count: actualBookedCount,
+				citas: activeAppointments.map(apt => ({
+					id: apt.id,
+					status: apt.status,
+					email: apt.email,
+					name: apt.name,
+					created_at: apt.created_at,
+				})),
+			});
+		}
 		// Considerar disponible si el contador real es menor a la capacidad
 		// El contador del slot puede estar desactualizado, así que confiamos más en el contador real
 		const available = actualBookedCount < slot.capacity;

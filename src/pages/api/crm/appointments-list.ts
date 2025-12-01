@@ -127,6 +127,18 @@ export const GET: APIRoute = async ({ url }) => {
 										...propertyData,
 										imageUrl,
 									};
+									// También agregar imageUrl directamente al objeto property para compatibilidad
+									apt.property = {
+										id: propertyData.id,
+										title: propertyData.title,
+										address: propertyData.address,
+										price: propertyData.price,
+										propertyType: propertyData.property_type,
+										bedrooms: propertyData.bedrooms,
+										bathrooms: propertyData.bathrooms,
+										area: propertyData.area,
+										imageUrl,
+									};
 								}
 							} catch (e) {
 								// Ignorar errores al obtener la propiedad
@@ -172,6 +184,18 @@ export const GET: APIRoute = async ({ url }) => {
 												area: ebData.features?.construction_size || null,
 												imageUrl: imageUrl,
 											};
+											// También agregar como property para compatibilidad con la tabla
+											apt.property = {
+												id: easyBrokerIdMatch[1],
+												title: ebData.title || propertyTitleMatch?.[1]?.trim() || 'Propiedad de Easy Broker',
+												address: typeof ebData.location === 'string' ? ebData.location : ebData.location?.address || addressMatch?.[1]?.trim() || '',
+												price: ebData.operations?.[0]?.amount || 0,
+												propertyType: ebData.property_type || 'casa',
+												bedrooms: ebData.features?.bedrooms || null,
+												bathrooms: ebData.features?.bathrooms || null,
+												area: ebData.features?.construction_size || null,
+												imageUrl: imageUrl,
+											};
 										}
 									}
 								} catch (e) {
@@ -188,11 +212,35 @@ export const GET: APIRoute = async ({ url }) => {
 											area: null,
 											imageUrl: imageUrl,
 										};
+										// También agregar como property para compatibilidad
+										apt.property = {
+											id: easyBrokerIdMatch[1],
+											title: propertyTitleMatch ? propertyTitleMatch[1].trim() : 'Propiedad de Easy Broker',
+											address: addressMatch ? addressMatch[1].trim() : '',
+											price: 0,
+											propertyType: 'casa',
+											bedrooms: null,
+											bathrooms: null,
+											area: null,
+											imageUrl: imageUrl,
+										};
 									}
 								}
 							} else if (imageUrl || propertyTitleMatch) {
 								// Si solo hay imagen o título pero no ID, crear objeto básico desde las notas
 								apt.properties = {
+									id: 'unknown',
+									title: propertyTitleMatch ? propertyTitleMatch[1].trim() : 'Propiedad',
+									address: addressMatch ? addressMatch[1].trim() : '',
+									price: 0,
+									propertyType: 'casa',
+									bedrooms: null,
+									bathrooms: null,
+									area: null,
+									imageUrl: imageUrl,
+								};
+								// También agregar como property para compatibilidad
+								apt.property = {
 									id: 'unknown',
 									title: propertyTitleMatch ? propertyTitleMatch[1].trim() : 'Propiedad',
 									address: addressMatch ? addressMatch[1].trim() : '',
