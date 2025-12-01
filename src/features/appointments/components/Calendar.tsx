@@ -183,11 +183,11 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 			)}
 			
 			{/* Navegación del mes */}
-			<div class="flex items-center justify-between mb-6 bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+			<div class="flex items-center justify-between mb-6 bg-white p-3 border border-gray-200 rounded-lg shadow-md">
 				<button
 					type="button"
 					onClick={prevMonth}
-					class="p-2 hover:bg-gray-50 transition-all duration-200 active:scale-95 rounded-md"
+					class="p-2 hover:bg-gray-100 transition-all duration-200 rounded-md"
 					aria-label="Mes anterior"
 				>
 					<svg class="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,7 +200,7 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 				<button
 					type="button"
 					onClick={nextMonth}
-					class="p-2 hover:bg-gray-50 transition-all duration-200 active:scale-95 rounded-md"
+					class="p-2 hover:bg-gray-100 transition-all duration-200 rounded-md"
 					aria-label="Mes siguiente"
 				>
 					<svg class="w-6 h-6 text-gray-600 hover:text-gray-900 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,30 +231,30 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 					const isSelected = isDateSelected(date);
 					const isTodayDate = isToday(date);
 
-					// Determinar colores según el estado de disponibilidad (estilo CRM)
+					// Determinar colores según el estado de disponibilidad (estilo CRM con verde claro)
 					let dayBgClass = '';
 					let dayHoverClass = '';
 					
 					if (isPast || !isAvailable) {
-						dayBgClass = 'bg-gray-100 border-gray-200 text-gray-400';
+						dayBgClass = 'bg-gray-50 border-gray-200 text-gray-300';
 						dayHoverClass = '';
 					} else {
 						switch (availabilityStatus) {
 							case 'available':
-								dayBgClass = 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50';
-								dayHoverClass = 'hover:border-gray-900 hover:shadow-sm';
+								dayBgClass = 'bg-green-50 border-green-200 text-gray-900';
+								dayHoverClass = 'hover:bg-green-100 hover:border-green-300 hover:text-green-700';
 								break;
 							case 'half-full':
-								dayBgClass = 'bg-white border-orange-300 text-gray-900 hover:bg-orange-50';
-								dayHoverClass = 'hover:border-orange-400 hover:shadow-sm';
+								dayBgClass = 'bg-orange-50 border-orange-200 text-gray-900';
+								dayHoverClass = 'hover:bg-orange-100 hover:border-orange-300 hover:text-orange-700';
 								break;
 							case 'full':
-								dayBgClass = 'bg-gray-100 border-gray-200 text-gray-400';
-								dayHoverClass = '';
+								dayBgClass = 'bg-red-50 border-red-200 text-gray-900';
+								dayHoverClass = 'hover:bg-red-100 hover:border-red-300 hover:text-red-700';
 								break;
 							case 'none':
 							default:
-								dayBgClass = 'bg-gray-100 border-gray-200 text-gray-400';
+								dayBgClass = 'bg-gray-50 border-gray-200 text-gray-300';
 								dayHoverClass = '';
 								break;
 						}
@@ -267,22 +267,22 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 							onClick={() => handleDateClick(date)}
 							disabled={isPast || !isAvailable || availabilityStatus === 'full' || availabilityStatus === 'none'}
 							class={`
-								py-3 px-2 text-sm font-semibold transition-all duration-200 relative border rounded-md
+								py-3 px-2 text-sm font-bold transition-all duration-200 relative rounded-md border
 								${dayBgClass}
 								${!isPast && isAvailable && availabilityStatus !== 'full' && availabilityStatus !== 'none' 
-									? `${dayHoverClass} hover:scale-105 active:scale-95 cursor-pointer`
+									? `${dayHoverClass} hover:scale-105 active:scale-95 shadow-sm hover:shadow-md cursor-pointer`
 									: 'cursor-not-allowed'
 								}
 								${isSelected 
-									? 'bg-gray-900 text-white border-gray-900 shadow-md scale-105' 
+									? 'bg-gray-900 text-white shadow-md scale-105 border-2 border-gray-900' 
 									: ''
 								}
 								${isTodayDate && !isSelected && isAvailable && availabilityStatus !== 'full' && availabilityStatus !== 'none'
-									? 'ring-2 ring-gray-900 ring-offset-2'
+									? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white'
 									: ''
 								}
 								${isTodayDate && isSelected
-									? 'bg-gray-900 text-white border-gray-900'
+									? 'bg-gray-900 text-white'
 									: ''
 								}
 							`}
@@ -299,8 +299,8 @@ export default function Calendar({ availableSlots, onDateSelect, selectedDate }:
 							}
 						>
 							{day}
-							{isTodayDate && !isSelected && (
-								<span class="absolute -top-1 -right-1 w-2 h-2 bg-gray-900 rounded-full"></span>
+							{isTodayDate && (
+								<span class="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
 							)}
 						</button>
 					);
