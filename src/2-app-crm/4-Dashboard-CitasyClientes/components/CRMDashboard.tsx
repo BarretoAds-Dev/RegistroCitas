@@ -1,15 +1,15 @@
 /** @jsxImportSource preact */
-import { useEffect, useMemo, useState } from 'preact/hooks';
 import { supabaseAuth } from '@/1-app-global-core/core/config/auth';
 import { Button } from '@/1-app-global-core/shared/ui';
-import { CreatePropertyModal } from '../../easybroker/components/CreatePropertyModal';
-import { PropertiesDashboard } from '../../easybroker/components/PropertiesDashboard';
-import AdminSettings from './AdminSettings';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import BookingPublic from '../../1-BookingForm/BookingPublicForm/BookingPublic';
+import { CreatePropertyModal } from '../../3-Dashboard-Propiedades/components/CreatePropertyModal';
+import { PropertiesDashboard } from '../../3-Dashboard-Propiedades/components/PropertiesDashboard';
+import AdminSettings from '../../2-Dashboard-PanelGeneral/components/AdminSettings';
 import AdvancedFilters, { type FilterState } from './AdvancedFilters';
 import AppointmentsTable from './AppointmentsTable';
-import BookingPublic from '../../appointments/components/BookingPublicForm/BookingPublic';
-import DashboardPanel from './DashboardPanel';
-import Sidebar from './Sidebar';
+import DashboardPanel from '../../2-Dashboard-PanelGeneral/components/DashboardPanel';
+import Sidebar from '../../2-Dashboard-PanelGeneral/components/Sidebar';
 
 interface Appointment {
   id: string;

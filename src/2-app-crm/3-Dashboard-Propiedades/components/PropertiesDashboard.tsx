@@ -207,7 +207,7 @@ export function PropertiesDashboard({
                     try {
                       const baseUrl = window.location.origin;
                       const appointmentLink = `${baseUrl}/citas?propertyId=${prop.public_id}`;
-                      
+
                       // Intentar copiar al portapapeles
                       try {
                         await navigator.clipboard.writeText(appointmentLink);

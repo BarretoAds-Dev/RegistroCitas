@@ -253,88 +253,98 @@ export function PropertyCard({
               />
             </svg>
             <span className="text-xs font-bold text-gray-900">
-              {property.features.construction_size ?? property.features.lot_size ?? '-'}
+              {property.features.construction_size ??
+                property.features.lot_size ??
+                '-'}
             </span>
-            <span className="text-[10px] text-gray-500 text-center leading-tight">m²</span>
+            <span className="text-[10px] text-gray-500 text-center leading-tight">
+              m²
+            </span>
           </div>
         </div>
 
         {/* Botones de acción */}
-        <div className="mt-auto flex gap-1 pt-3 border-t border-gray-200">
+        <div className="mt-auto flex gap-0.5 pt-3 border-t border-gray-200 min-w-0">
           {onScheduleAppointment && (
-            <Button
-              type="button"
-              onClick={handleScheduleAppointment}
-              variant="primary"
-              size="sm"
-              uppercase={false}
-              className="flex-1 text-xs px-1.5 py-1 bg-gray-900 hover:bg-gray-800 text-white h-7 flex items-center justify-center gap-1"
-            >
-              <svg
-                className="h-3 w-3 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div className="flex-1 min-w-0" title="Crear Cita">
+              <Button
+                type="button"
+                onClick={handleScheduleAppointment}
+                variant="primary"
+                size="sm"
+                uppercase={false}
+                className="w-full min-w-0 text-[10px] px-1 py-1 bg-gray-900 hover:bg-gray-800 text-white h-7 flex items-center justify-center gap-0.5 overflow-hidden"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="truncate">Crear Cita</span>
-            </Button>
+                <svg
+                  className="h-3 w-3 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="truncate hidden sm:inline">Cita</span>
+              </Button>
+            </div>
           )}
           {onGetAppointmentLink && (
-            <Button
-              type="button"
-              onClick={handleGetAppointmentLink}
-              variant="primary"
-              size="sm"
-              uppercase={false}
-              className="flex-1 text-xs px-1.5 py-1 bg-gray-900 hover:bg-gray-800 text-white h-7 flex items-center justify-center gap-1"
-            >
-              <svg
-                className="h-3 w-3 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div className="flex-1 min-w-0" title="Link de cita">
+              <Button
+                type="button"
+                onClick={handleGetAppointmentLink}
+                variant="primary"
+                size="sm"
+                uppercase={false}
+                className="w-full min-w-0 text-[10px] px-1 py-1 bg-gray-900 hover:bg-gray-800 text-white h-7 flex items-center justify-center gap-0.5 overflow-hidden"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                />
-              </svg>
-              <span className="truncate">Link de cita</span>
-            </Button>
+                <svg
+                  className="h-3 w-3 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
+                </svg>
+                <span className="truncate hidden sm:inline">Link</span>
+              </Button>
+            </div>
           )}
           {onDownloadSheet && (
-            <Button
-              type="button"
-              onClick={handleDownloadSheet}
-              variant="primary"
-              size="sm"
-              uppercase={false}
-              className="flex-1 text-xs px-1.5 py-1 bg-gray-900 hover:bg-gray-800 text-white h-7 flex items-center justify-center gap-1"
-            >
-              <svg
-                className="h-3 w-3 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div className="flex-1 min-w-0" title="Ficha">
+              <Button
+                type="button"
+                onClick={handleDownloadSheet}
+                variant="primary"
+                size="sm"
+                uppercase={false}
+                className="w-full min-w-0 text-[10px] px-1 py-1 bg-gray-900 hover:bg-gray-800 text-white h-7 flex items-center justify-center gap-0.5 overflow-hidden"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              <span className="truncate">Ficha</span>
-            </Button>
+                <svg
+                  className="h-3 w-3 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <span className="truncate hidden sm:inline">Ficha</span>
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -365,7 +375,11 @@ function formatLocation(location: EasyBrokerProperty['location']): string {
     if ('city' in location && location.city) {
       parts.push(String(location.city));
     }
-    if ('state' in location && location.state && location.state !== location.city) {
+    if (
+      'state' in location &&
+      location.state &&
+      location.state !== location.city
+    ) {
       parts.push(String(location.state));
     }
 

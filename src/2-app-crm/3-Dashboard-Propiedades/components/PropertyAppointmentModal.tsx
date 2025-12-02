@@ -1,9 +1,9 @@
 /** @jsxImportSource preact */
 import { useState, useEffect } from 'preact/hooks';
 import { render } from 'preact';
-import CalendarCRM from '../../crm/components/CalendarCRM';
-import TimeSlotsCRM from '../../crm/components/TimeSlotsCRM';
-import AppointmentFormCRM from '../../crm/components/AppointmentFormCRM';
+import CalendarCRM from '../../4-Dashboard-CitasyClientes/components/CalendarCRM';
+import TimeSlotsCRM from '../../4-Dashboard-CitasyClientes/components/TimeSlotsCRM';
+import AppointmentFormCRM from '../../4-Dashboard-CitasyClientes/components/AppointmentFormCRM';
 import type { EasyBrokerProperty } from '@/1-app-global-core/core/types/easybroker';
 
 interface AvailableSlot {

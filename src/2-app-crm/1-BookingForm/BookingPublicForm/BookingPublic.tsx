@@ -6,9 +6,9 @@ import type {
   AppointmentStep,
   AvailableSlot,
 } from '@/1-app-global-core/core/types/appointment';
-import AppointmentFormCRM from '@/2-app-crm/features/crm/components/AppointmentFormCRM';
-import CalendarCRM from '@/2-app-crm/features/crm/components/CalendarCRM';
-import TimeSlotsCRM from '@/2-app-crm/features/crm/components/TimeSlotsCRM';
+import AppointmentFormCRM from '@/2-app-crm/4-Dashboard-CitasyClientes/components/AppointmentFormCRM';
+import CalendarCRM from '@/2-app-crm/4-Dashboard-CitasyClientes/components/CalendarCRM';
+import TimeSlotsCRM from '@/2-app-crm/4-Dashboard-CitasyClientes/components/TimeSlotsCRM';
 import AppointmentForm from './ui-bookingpublic/AppointmentForm';
 import Calendar from './ui-bookingpublic/Calendar';
 import ConfirmationPanel from './ui-bookingpublic/ConfirmationPanel';

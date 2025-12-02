@@ -1,6 +1,6 @@
+import type { AppointmentFormData } from '@/2-app-crm/1-BookingForm/schemas/appointment.schema';
 import { getSupabaseAdmin } from '../config/supabase';
 import type { AvailabilitySlot } from '../types';
-import type { AppointmentFormData } from '@/2-app-crm/features/appointments/schemas/appointment.schema';
 
 /**
  * Servicio para gestionar citas
@@ -761,11 +761,14 @@ export class AppointmentsService {
           formData.operationType === 'comprar'
             ? {
                 banco: (formData as any).banco || null,
-                creditoPreaprobado: (formData as any).creditoPreaprobado || null,
-                modalidadInfonavit: (formData as any).modalidadInfonavit || null,
+                creditoPreaprobado:
+                  (formData as any).creditoPreaprobado || null,
+                modalidadInfonavit:
+                  (formData as any).modalidadInfonavit || null,
                 numeroTrabajadorInfonavit:
                   (formData as any).numeroTrabajadorInfonavit || null,
-                modalidadFovissste: (formData as any).modalidadFovissste || null,
+                modalidadFovissste:
+                  (formData as any).modalidadFovissste || null,
                 numeroTrabajadorFovissste:
                   (formData as any).numeroTrabajadorFovissste || null,
               }
