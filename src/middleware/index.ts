@@ -24,12 +24,12 @@ const corsMiddleware: MiddlewareHandler = async (context, next) => {
 
 	if (isApiRoute) {
 		const response = await next();
-		
+
 		// Agregar headers CORS
 		response.headers.set('Access-Control-Allow-Origin', '*');
 		response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
 		response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-		
+
 		return response;
 	}
 
@@ -42,12 +42,12 @@ const corsMiddleware: MiddlewareHandler = async (context, next) => {
  */
 export const onRequest = defineMiddleware(async (context, next) => {
 	const { url } = context;
-	
+
 	// Para rutas de login, permitir acceso sin verificación
 	if (url.pathname === '/login') {
 		return next();
 	}
-	
+
 	// Ejecutar autenticación primero para rutas protegidas
 	const authResponse = await authMiddleware(context, async () => {
 		// Luego ejecutar CORS para API routes
