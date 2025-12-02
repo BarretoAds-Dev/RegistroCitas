@@ -10,7 +10,7 @@ import {
   ErrorMessage,
   FormField,
   Input,
-} from '@/1-app-global-core/shared/ui';
+} from '@/3-components';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 interface Property {

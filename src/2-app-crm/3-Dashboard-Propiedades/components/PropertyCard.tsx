@@ -1,6 +1,6 @@
 /** @jsxImportSource preact */
 import type { EasyBrokerProperty } from '@/1-app-global-core/4-types/easybroker';
-import Button from '@/1-app-global-core/shared/ui/atoms/Button';
+import Button from '@/3-components/atoms/Button';
 
 interface PropertyCardProps {
   property: EasyBrokerProperty;
