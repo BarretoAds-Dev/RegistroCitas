@@ -1,4 +1,4 @@
-import { supabase } from '@/1-app-global-core/config';
+import { supabase } from '@/1-app-global-core/1-config';
 import type { AvailabilitySlot } from '@/1-app-global-core/4-types';
 
 /**

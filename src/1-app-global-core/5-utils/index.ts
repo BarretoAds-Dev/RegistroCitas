@@ -1,8 +1,8 @@
 /**
  * Barrel Export - Utilidades Globales
- * 
+ *
  * Exporta todas las utilidades del sistema de forma centralizada
- * 
+ *
  * @example
  * ```ts
  * import { formatDateLocal, formatCurrency, validateName, getEasyBrokerPropertyUrl } from '@/1-app-global-core/utils';

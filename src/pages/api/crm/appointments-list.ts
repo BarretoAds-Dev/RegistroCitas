@@ -2,7 +2,7 @@ import {
   getEasyBrokerApiKey,
   getEasyBrokerBaseUrl,
   supabase,
-} from '@/1-app-global-core/config';
+} from '@/1-app-global-core/1-config';
 import type { Appointment } from '@/1-app-global-core/4-types/appointment';
 import type { APIRoute } from 'astro';
 

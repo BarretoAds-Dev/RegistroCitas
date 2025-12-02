@@ -5,7 +5,7 @@
 export {
   EasyBrokerServiceAPI,
   getEasyBrokerService,
-} from '@/1-app-global-core/services/easybroker.service';
+} from '@/1-app-global-core/2-services/easybroker.service';
 export type {
   EasyBrokerPropertiesResponse,
   EasyBrokerProperty,

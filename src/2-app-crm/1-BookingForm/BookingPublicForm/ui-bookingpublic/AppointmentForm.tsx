@@ -2,7 +2,7 @@
 import {
   BUDGET_OPTIONS_COMPRAR,
   BUDGET_OPTIONS_RENTAR,
-} from '@/1-app-global-core/config';
+} from '@/1-app-global-core/1-config';
 import AppointmentFormFields from '@/1-app-global-core/shared/components/AppointmentFormFields';
 import { useAppointmentForm } from '@/1-app-global-core/shared/hooks/useAppointmentForm';
 import {

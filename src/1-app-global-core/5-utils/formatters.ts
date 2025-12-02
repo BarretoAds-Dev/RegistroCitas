@@ -1,9 +1,9 @@
 /**
  * Utilidades de Formateo (Formatters)
- * 
+ *
  * Unifica funciones de formateo de fechas, monedas, URLs y otros datos
  * en un solo módulo cohesivo.
- * 
+ *
  * @example
  * ```ts
  * import { formatDateLocal, formatCurrency, getEasyBrokerPropertyUrl } from '@/1-app-global-core/utils';

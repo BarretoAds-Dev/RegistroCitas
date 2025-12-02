@@ -1,5 +1,5 @@
 /** @jsxImportSource preact */
-import { supabaseAuth } from '@/1-app-global-core/config';
+import { supabaseAuth } from '@/1-app-global-core/1-config';
 import { Button } from '@/1-app-global-core/shared/ui';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import BookingPublic from '../../1-BookingForm/BookingPublicForm/BookingPublic';

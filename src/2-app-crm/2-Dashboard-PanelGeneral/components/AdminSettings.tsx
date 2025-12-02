@@ -1,9 +1,6 @@
 /** @jsxImportSource preact */
-import { supabaseAuth } from '@/1-app-global-core/config';
-import {
-  deleteAvatar,
-  uploadAvatar,
-} from '@/1-app-global-core/services';
+import { supabaseAuth } from '@/1-app-global-core/1-config';
+import { deleteAvatar, uploadAvatar } from '@/1-app-global-core/2-services';
 import { Button } from '@/1-app-global-core/shared/ui';
 import { useEffect, useRef, useState } from 'preact/hooks';
 

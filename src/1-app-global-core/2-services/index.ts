@@ -3,7 +3,7 @@
  *
  * Todos los servicios están centralizados aquí para ser compartidos
  * entre CRM y Site, evitando duplicación de lógica de negocio.
- * 
+ *
  * Estructura optimizada:
  * - booking.service.ts: Unifica appointments + availability
  * - easybroker.service.ts: API externa de EasyBroker
