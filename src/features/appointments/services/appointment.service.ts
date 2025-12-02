@@ -257,7 +257,7 @@ export class AppointmentsService {
 		const appointmentData: AppointmentInsert = {
 			slot_id: slot.id,
 			agent_id: slot.agent_id,
-			property_id: formData.propertyId || null,
+			property_id: (formData.propertyId && formData.propertyId.trim() !== '') ? formData.propertyId : null,
 			client_name: formData.name,
 			client_email: formData.email.toLowerCase(),
 			client_phone: formData.phone || null,

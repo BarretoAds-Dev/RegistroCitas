@@ -45,6 +45,7 @@ export function PropertyAppointmentModal({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [modalRoot, setModalRoot] = useState<HTMLElement | null>(null);
+	const [syncedPropertyId, setSyncedPropertyId] = useState<string | null>(null);
 
 	const formatDateLocal = (date: Date): string => {
 		const year = date.getFullYear();
@@ -75,11 +76,73 @@ export function PropertyAppointmentModal({
 		}
 	};
 
+	// Sincronizar propiedad cuando se abre el modal
 	useEffect(() => {
-		if (isOpen) {
+		if (isOpen && property) {
 			loadAvailability();
+
+			// Sincronizar propiedad con Supabase para obtener UUID
+			const syncProperty = async (): Promise<void> => {
+				// Si la propiedad ya tiene 'id' (propiedad de Supabase), usar ese directamente
+				if (property && 'id' in property && typeof property.id === 'string') {
+					setSyncedPropertyId(property.id);
+					console.log('✅ Usando propiedad existente de Supabase:', property.id);
+					return;
+				}
+
+				// Si es una propiedad de Easy Broker, buscar o crear en Supabase
+				if (property && property.public_id) {
+					try {
+						console.log('🔄 Sincronizando propiedad de Easy Broker con Supabase...');
+						const propertyResponse = await fetch('/api/properties/sync-easybroker', {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								public_id: property.public_id,
+								title: property.title,
+								address: typeof property.location === 'string'
+									? property.location
+									: property.location?.address || property.location?.city || 'Dirección no disponible',
+								price: property.operations[0]?.amount || 0,
+								property_type: property.property_type || 'casa',
+								bedrooms: property.features?.bedrooms || null,
+								bathrooms: property.features?.bathrooms || null,
+								area: property.features?.construction_size || null,
+								description: property.description || null,
+							}),
+						});
+
+						if (propertyResponse.ok) {
+							const result = await propertyResponse.json();
+							// El endpoint retorna { property: { id: '...' } } o { property: [{ id: '...' }] }
+							const propertyId = Array.isArray(result.property)
+								? result.property[0]?.id
+								: result.property?.id;
+
+							if (propertyId) {
+								setSyncedPropertyId(propertyId);
+								console.log('✅ Propiedad sincronizada exitosamente:', propertyId);
+							} else {
+								console.warn('⚠️ Propiedad sincronizada pero sin ID válido:', result);
+							}
+						} else {
+							const errorResult = await propertyResponse.json();
+							console.warn('⚠️ Error al sincronizar propiedad:', errorResult);
+						}
+					} catch (error) {
+						console.warn('⚠️ No se pudo sincronizar la propiedad con Supabase:', error);
+					}
+				}
+			};
+
+			syncProperty();
+		} else if (!isOpen) {
+			// Limpiar estado cuando se cierra el modal
+			setSyncedPropertyId(null);
 		}
-	}, [isOpen]);
+	}, [isOpen, property]);
 
 	const slotsForSelectedDate = availableSlots.find(
 		(slot) => selectedDate && slot.date === formatDateLocal(selectedDate)
@@ -101,48 +164,13 @@ export function PropertyAppointmentModal({
 		setIsSubmitting(true);
 		setSuccessMessage(null);
 
-		let propertyId: string | null = null;
+		// Usar el propertyId sincronizado (ya debería estar disponible)
+		const propertyId = syncedPropertyId;
 
-		// Si la propiedad tiene 'id' (propiedad de Supabase), usar ese directamente
-		if (property && 'id' in property && typeof property.id === 'string') {
-			propertyId = property.id;
-			console.log('✅ Usando propiedad existente de Supabase:', propertyId);
-		} else if (property && property.public_id) {
-			// Si es una propiedad de Easy Broker, buscar o crear en Supabase
-			try {
-				console.log('🔄 Sincronizando propiedad de Easy Broker con Supabase...');
-				const propertyResponse = await fetch('/api/properties/sync-easybroker', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						public_id: property.public_id,
-						title: property.title,
-						address: typeof property.location === 'string'
-							? property.location
-							: property.location?.address || property.location?.city || 'Dirección no disponible',
-						price: property.operations[0]?.amount || 0,
-						property_type: property.property_type || 'casa',
-						bedrooms: property.features?.bedrooms || null,
-						bathrooms: property.features?.bathrooms || null,
-						area: property.features?.construction_size || null,
-						description: property.description || null,
-					}),
-				});
-
-				if (propertyResponse.ok) {
-					const result = await propertyResponse.json();
-					propertyId = result.property?.id || null;
-					console.log('✅ Propiedad sincronizada exitosamente:', propertyId);
-				} else {
-					const errorResult = await propertyResponse.json();
-					console.warn('⚠️ Error al sincronizar propiedad:', errorResult);
-				}
-			} catch (error) {
-				console.warn('⚠️ No se pudo sincronizar la propiedad con Supabase:', error);
-				// Continuar sin propertyId, pero guardar info en notas
-			}
+		if (propertyId) {
+			console.log('✅ Usando propertyId sincronizado:', propertyId);
+		} else {
+			console.warn('⚠️ No hay propertyId sincronizado, la cita se creará sin propiedad asociada');
 		}
 
 		// Agregar información de la propiedad a los datos de la cita
@@ -386,7 +414,7 @@ export function PropertyAppointmentModal({
 								onBack={handleBackToTime}
 								onSubmit={handleFormSubmit}
 								preselectedProperty={property ? {
-									id: property.public_id,
+									id: syncedPropertyId || '', // Usar UUID sincronizado, no public_id
 									title: property.title,
 									address: typeof property.location === 'string'
 										? property.location

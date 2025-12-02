@@ -6,18 +6,18 @@ const contactSchema = z.object({
 		.min(2, 'El nombre debe tener al menos 2 caracteres')
 		.max(100, 'El nombre no puede exceder 100 caracteres')
 		.regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/, 'El nombre solo puede contener letras y espacios'),
-	
+
 	email: z.string()
 		.email('Debe ser un email válido')
 		.toLowerCase()
 		.max(255, 'El email no puede exceder 255 caracteres'),
-	
+
 	phone: z.string()
 		.regex(/^[\d\s\+\-\(\)]*$/, 'El teléfono contiene caracteres inválidos')
 		.max(20, 'El teléfono no puede exceder 20 caracteres')
 		.optional()
 		.or(z.literal('')),
-	
+
 	notes: z.string()
 		.max(1000, 'Las notas no pueden exceder 1000 caracteres')
 		.optional()
@@ -139,6 +139,8 @@ export const appointmentSchema = z.object({
 	date: z.string().min(1, 'Debes seleccionar una fecha'),
 	// Aceptar formato HH:MM o HH:MM:SS
 	time: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, 'Formato de hora inválido'),
+	// propertyId es opcional (puede ser null, string vacío, o string válido)
+	propertyId: z.union([z.string().min(1), z.null(), z.literal('')]).optional(),
 }).and(contactSchema).and(
 	z.union([
 		rentarSchema,

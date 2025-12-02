@@ -62,6 +62,7 @@ export const POST: APIRoute = async ({ request }) => {
 			email: formData.email,
 			name: formData.name,
 			operationType: formData.operationType,
+			propertyId: formData.propertyId || null,
 		});
 
 		// Buscar slot disponible

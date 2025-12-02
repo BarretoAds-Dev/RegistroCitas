@@ -402,6 +402,16 @@ export default function AppointmentFormCRM({
       return time;
     };
 
+    // Validar que propertyId sea un UUID válido (no un public_id de Easy Broker)
+    const isValidUUID = (str: string | null | undefined): boolean => {
+      if (!str || typeof str !== 'string') return false;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      return uuidRegex.test(str);
+    };
+
+    const rawPropertyId = preselectedProperty?.id || selectedPropertyId || null;
+    const propertyId = rawPropertyId && isValidUUID(rawPropertyId) ? rawPropertyId : null;
+
     const appointmentData: any = {
       date: dateStr,
       time: normalizeTime(selectedTime || ''),
@@ -410,7 +420,7 @@ export default function AppointmentFormCRM({
       phone: formData.get('phone') || '',
       operationType: formData.get('operationType') || '',
       notes: notesWithProperty,
-      propertyId: preselectedProperty?.id || selectedPropertyId || null,
+      propertyId: propertyId,
     };
 
     // Log para debugging
