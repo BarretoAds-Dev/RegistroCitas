@@ -1,8 +1,8 @@
 /**
  * Componentes Globales - Barrel Export
- * 
+ *
  * Exporta todos los componentes reutilizables del sistema
- * 
+ *
  * @example
  * ```ts
  * import { Button, Input, FormField } from '@/3-components';

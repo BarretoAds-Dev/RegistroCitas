@@ -8,7 +8,7 @@ import {
   OPERATION_TYPES,
   RESOURCE_TYPES,
 } from '@/1-app-global-core/1-config';
-import { FormField, Input, Radio, Select } from '../ui';
+import { FormField, Input, Radio, Select } from '@/3-components';
 
 interface AppointmentFormFieldsProps {
   operationType: 'rentar' | 'comprar' | '';
