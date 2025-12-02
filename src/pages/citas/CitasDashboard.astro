@@ -1,5 +1,5 @@
 ---
-import Welcome from '@/2-app-crm/1-BookingForm/components/Welcome.astro';
+import BookingWelcome from '@/2-app-crm/1-BookingForm/components/BookingWelcome.astro';
 import Layout from '@/layouts/Layout.astro';
 
 // 🔧 Configuración por defecto (puede venir de Supabase en el futuro)
@@ -35,8 +35,9 @@ if (supabaseUrl) {
 ---
 
 <Layout>
-	<Welcome
+	<BookingWelcome
 		availableSlots={filteredSlots}
 		config={config}
+		client:visible
 	/>
 </Layout>

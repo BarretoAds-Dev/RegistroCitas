@@ -2,22 +2,16 @@
  * Componentes Globales - Barrel Export
  *
  * Exporta todos los componentes reutilizables del sistema
+ * Incluye: atoms, molecules y componentes globales (LoginForm, AppointmentFormFields)
  *
  * @example
  * ```ts
- * import { Button, Input, FormField } from '@/components';
+ * import { Button, Input, FormField, ErrorMessage, LoginForm } from '@/components';
  * ```
  */
 
 // ============================================================================
-// Atoms (Componentes básicos)
+// UI Components (Todos los componentes UI)
 // ============================================================================
 
-export * from './atoms';
-
-// ============================================================================
-// Molecules (Componentes compuestos)
-// ============================================================================
-
-export * from './molecules';
-
+export * from './ui';
