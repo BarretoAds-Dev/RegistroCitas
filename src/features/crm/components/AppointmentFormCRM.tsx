@@ -418,13 +418,7 @@ export default function AppointmentFormCRM({
       date: appointmentData.date,
       time: appointmentData.time,
       selectedTimeOriginal: selectedTime,
-    });
-
-    // Log para debugging
-    console.log('📤 Datos de cita a enviar:', {
-      date: appointmentData.date,
-      time: appointmentData.time,
-      selectedTimeOriginal: selectedTime,
+      normalizedTime: appointmentData.time,
     });
 
     if (operationType === 'rentar') {

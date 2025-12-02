@@ -78,16 +78,32 @@ export class AppointmentsService {
 			// Filtrar por hora manualmente para manejar diferentes formatos
 			const matchingSlots = typedSlots.filter((slot) => {
 				if (!slot) return false;
-				const slotTime = slot.start_time;
+				const slotTime = String(slot.start_time || '').trim();
+				const normalizedTimeStr = String(normalizedTime || '').trim();
+
+				// Extraer solo HH:MM de ambos tiempos (ignorar segundos)
 				const slotTimeShort = slotTime.substring(0, 5);
-				const normalizedTimeShort = normalizedTime.substring(0, 5);
-				const matches = slotTime === normalizedTime || slotTimeShort === normalizedTimeShort;
+				const normalizedTimeShort = normalizedTimeStr.substring(0, 5);
+
+				// Comparar de múltiples formas para mayor flexibilidad
+				const matches =
+					slotTime === normalizedTimeStr ||
+					slotTimeShort === normalizedTimeShort ||
+					slotTime.replace(/:/g, '') === normalizedTimeStr.replace(/:/g, '').substring(0, 4);
 
 				if (matches) {
 					console.log('✅ Slot coincide:', {
 						slotId: slot.id,
 						slotTime,
-						normalizedTime,
+						normalizedTime: normalizedTimeStr,
+						slotTimeShort,
+						normalizedTimeShort,
+					});
+				} else {
+					console.log('❌ Slot NO coincide:', {
+						slotId: slot.id,
+						slotTime,
+						normalizedTime: normalizedTimeStr,
 						slotTimeShort,
 						normalizedTimeShort,
 					});
@@ -274,8 +290,17 @@ export class AppointmentsService {
 		};
 
 		try {
+			console.log('🔧 Creando cita con datos:', {
+				slot_id: appointmentData.slot_id,
+				client_email: appointmentData.client_email,
+				appointment_date: appointmentData.appointment_date,
+				appointment_time: appointmentData.appointment_time,
+				hasPropertyId: !!appointmentData.property_id,
+			});
+
 			// Usar cliente admin si está disponible para bypass RLS
 			const client = supabaseAdmin || supabase;
+			console.log('🔑 Usando cliente:', supabaseAdmin ? 'admin (bypass RLS)' : 'anon (con RLS)');
 
 			// Intentar insertar con property_id
 			let { data: appointment, error: insertError } = await client
@@ -283,6 +308,11 @@ export class AppointmentsService {
 				.insert(appointmentData as any)
 				.select()
 				.single();
+
+			console.log('📝 Resultado del insert inicial:', {
+				appointment: appointment ? { id: appointment.id, email: appointment.client_email } : null,
+				error: insertError ? { message: insertError.message, code: insertError.code } : null,
+			});
 
 			// Si falla porque property_id no existe, intentar sin ese campo
 			if (insertError && insertError.message?.includes("Could not find the 'property_id' column")) {
@@ -296,16 +326,32 @@ export class AppointmentsService {
 					.select()
 					.single();
 
+				console.log('📝 Resultado del retry sin property_id:', {
+					appointment: retryResult.data ? { id: retryResult.data.id, email: retryResult.data.client_email } : null,
+					error: retryResult.error ? { message: retryResult.error.message, code: retryResult.error.code } : null,
+				});
+
 				appointment = retryResult.data;
 				insertError = retryResult.error;
 			}
 
 			if (insertError || !appointment) {
+				console.error('❌ Error al crear cita:', {
+					error: insertError,
+					hasAppointment: !!appointment,
+				});
 				return {
 					appointment: null,
 					error: insertError || new Error('No se pudo crear la cita'),
 				};
 			}
+
+			console.log('✅ Cita creada exitosamente en DB:', {
+				id: appointment.id,
+				email: appointment.client_email,
+				date: appointment.appointment_date,
+				time: appointment.appointment_time,
+			});
 
 			// Actualizar contador manualmente como fallback
 			await this.updateSlotBookedCount(slot.id);

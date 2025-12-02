@@ -89,14 +89,27 @@ export default function AppointmentBooking({ availableSlots: initialAvailableSlo
 		setSelectedDate(null);
 		setCurrentStep(1);
 
-		// Refrescar disponibilidad EN SEGUNDO PLANO (sin bloquear UI)
-		// Esperar un momento para que la DB se actualice
-		setTimeout(() => {
-			refreshAvailability().catch(err => {
-				console.warn('Error al refrescar disponibilidad:', err);
-				// No mostrar error al usuario, es solo refresh de fondo
-			});
-		}, 1000);
+		// Refrescar disponibilidad DESPUÉS de 3 segundos (dar tiempo a la DB)
+		// Y manejar errores COMPLETAMENTE en silencio
+		setTimeout(async () => {
+			try {
+				const startDate = new Date().toISOString().split('T')[0];
+				const endDate = new Date();
+				endDate.setMonth(endDate.getMonth() + 6);
+				const endDateStr = endDate.toISOString().split('T')[0];
+
+				const response = await fetch(`/api/appointments/available?start=${startDate}&end=${endDateStr}`);
+				if (response.ok) {
+					const refreshedSlots = await response.json();
+					setAvailableSlots(refreshedSlots);
+				}
+				// NO hacer nada si falla - silenciar completamente
+			} catch (error) {
+				// NO hacer nada - silenciar completamente
+			} finally {
+				setIsRefreshing(false);
+			}
+		}, 3000); // Aumentar a 3 segundos
 
 		// Ocultar el mensaje después de 5 segundos
 		setTimeout(() => {

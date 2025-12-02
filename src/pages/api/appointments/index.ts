@@ -39,14 +39,6 @@ export const POST: APIRoute = async ({ request }) => {
 
 		console.log('🔍 Datos completos del body:', JSON.stringify(body, null, 2));
 
-		console.log('📥 Request recibido:', {
-			date: body.date,
-			time: body.time,
-			operationType: body.operationType,
-			hasName: !!body.name,
-			hasEmail: !!body.email
-		});
-
 		// Validar con Zod
 		const validation = validateAppointment(body);
 		if (!validation.success || !validation.data) {
@@ -74,6 +66,12 @@ export const POST: APIRoute = async ({ request }) => {
 
 		// Buscar slot disponible
 		console.log('🔍 Iniciando búsqueda de slot...');
+		const normalizedTime = AppointmentsService.normalizeTime(formData.time);
+		console.log('⏰ Tiempo normalizado:', {
+			original: formData.time,
+			normalized: normalizedTime,
+		});
+
 		const { slot, error: slotError } = await AppointmentsService.findAvailableSlot(
 			formData.date,
 			formData.time
@@ -89,25 +87,53 @@ export const POST: APIRoute = async ({ request }) => {
 			slotEnabled: slot?.enabled,
 			slotCapacity: slot?.capacity,
 			slotBooked: slot?.booked,
-			error: slotError?.message
+			error: slotError?.message,
+			requestedDate: formData.date,
+			requestedTime: formData.time,
+			normalizedTime: normalizedTime,
 		});
 
 		if (slotError || !slot) {
+			// Intentar buscar todos los slots disponibles para esa fecha para diagnóstico
+			const { supabase } = await import('../../../core/config/supabase');
+			const { data: allSlots } = await supabase
+				.from('availability_slots')
+				.select('*')
+				.eq('date', formData.date)
+				.eq('enabled', true)
+				.limit(20);
+
 			console.error('❌ Error al buscar slot:', {
 				error: slotError?.message,
 				date: formData.date,
 				time: formData.time,
-				normalizedTime: AppointmentsService.normalizeTime(formData.time),
+				normalizedTime: normalizedTime,
+				slotsDisponiblesEnFecha: allSlots?.map(s => ({
+					id: s.id,
+					start_time: s.start_time,
+					capacity: s.capacity,
+					booked: s.booked,
+					enabled: s.enabled,
+				})) || [],
 			});
+
+			const availableTimes = allSlots?.map(s => s.start_time).join(', ') || 'ninguno';
 			return new Response(
 				JSON.stringify({
 					error: 'Slot no encontrado o no disponible',
-					details: slotError?.message || 'No se encontró un slot disponible',
+					details: slotError?.message || `No se encontró un slot disponible para ${formData.date} a las ${formData.time}`,
 					debug: {
 						date: formData.date,
 						time: formData.time,
-						normalizedTime: AppointmentsService.normalizeTime(formData.time),
-						message: 'Verifica que exista un slot con esta fecha, hora y agent_id en la base de datos',
+						normalizedTime: normalizedTime,
+						slotsDisponibles: allSlots?.map(s => ({
+							time: s.start_time,
+							capacity: s.capacity,
+							booked: s.booked,
+							available: s.booked < s.capacity,
+						})) || [],
+						horasDisponibles: availableTimes,
+						message: `Para la fecha ${formData.date}, los horarios disponibles son: ${availableTimes || 'ninguno'}. Verifica que el slot esté habilitado y que el agent_id sea correcto.`,
 					},
 				}),
 				{ status: 404, headers: { 'Content-Type': 'application/json' } }

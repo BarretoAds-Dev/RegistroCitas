@@ -49,6 +49,8 @@ export default function AppointmentForm({ selectedDate, selectedTime, selectedPr
 		}
 
 		try {
+			console.log('📤 Enviando cita a la API:', validation.data);
+
 			const response = await fetch('/api/appointments', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -56,8 +58,10 @@ export default function AppointmentForm({ selectedDate, selectedTime, selectedPr
 			});
 
 			const result = await response.json();
+			console.log('📥 Respuesta de la API:', { status: response.status, result });
 
 			if (!response.ok) {
+				console.error('❌ Error en la respuesta:', result);
 				setErrors({
 					general: result.details || result.error || 'Error al crear la cita',
 				});
@@ -65,11 +69,24 @@ export default function AppointmentForm({ selectedDate, selectedTime, selectedPr
 				return;
 			}
 
+			// Verificar que la cita se creó correctamente
+			if (!result.appointment || !result.appointment.id) {
+				console.error('❌ La cita no se creó correctamente:', result);
+				setErrors({
+					general: 'Error: La cita no se creó correctamente. Por favor intenta nuevamente.',
+				});
+				setIsSubmitting(false);
+				return;
+			}
+
+			console.log('✅ Cita creada exitosamente, llamando a onSubmit');
 			onSubmit({
 				...validation.data,
 				appointmentId: result.appointment.id,
 			});
+			setIsSubmitting(false);
 		} catch (error) {
+			console.error('❌ Error de conexión:', error);
 			setErrors({
 				general: 'Error de conexión. Por favor verifica tu conexión e intenta nuevamente.',
 			});
