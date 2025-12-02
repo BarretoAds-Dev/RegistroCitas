@@ -1,7 +1,7 @@
 /** @jsxImportSource preact */
 import { easybrokerConfig } from '@/1-app-global-core/config';
-import { getEasyBrokerPropertyUrl } from '@/1-app-global-core/utils/easybroker-url';
-import type { EasyBrokerProperty } from '@/1-app-global-core/types/easybroker';
+import { getEasyBrokerPropertyUrl } from '@/1-app-global-core/utils';
+import type { EasyBrokerProperty } from '@/1-app-global-core/4-types/easybroker';
 import type { JSX } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { useProperties } from '../hooks/useProperties';

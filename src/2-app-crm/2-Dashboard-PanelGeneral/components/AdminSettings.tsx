@@ -3,7 +3,7 @@ import { supabaseAuth } from '@/1-app-global-core/config';
 import {
   deleteAvatar,
   uploadAvatar,
-} from '@/1-app-global-core/services/storage.service';
+} from '@/1-app-global-core/services';
 import { Button } from '@/1-app-global-core/shared/ui';
 import { useEffect, useRef, useState } from 'preact/hooks';
 

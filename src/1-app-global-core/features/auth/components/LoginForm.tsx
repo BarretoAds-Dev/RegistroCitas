@@ -1,7 +1,7 @@
 /** @jsxImportSource preact */
 import { useEffect, useState } from 'preact/hooks';
 import { supabaseAuth } from '../../../config';
-import { validatePassword as validatePasswordHibp } from '../../../services/hibp.service';
+import { validatePassword as validatePasswordHibp } from '@/1-app-global-core/services';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');

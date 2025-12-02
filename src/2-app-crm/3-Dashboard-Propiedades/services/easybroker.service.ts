@@ -11,4 +11,4 @@ export type {
   EasyBrokerProperty,
   EasyBrokerSearchFilters,
   EasyBrokerServiceResult,
-} from '@/1-app-global-core/types/easybroker';
+} from '@/1-app-global-core/4-types/easybroker';

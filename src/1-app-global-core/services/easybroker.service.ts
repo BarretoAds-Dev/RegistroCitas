@@ -4,11 +4,11 @@ import type {
   EasyBrokerProperty,
   EasyBrokerSearchFilters,
   EasyBrokerServiceResult,
-} from '../types/easybroker';
+} from '../4-types/easybroker';
 import {
   EasyBrokerPropertiesResponseSchema,
   EasyBrokerPropertyResponseSchema,
-} from '../types/easybroker';
+} from '../4-types/easybroker';
 
 /**
  * Servicio para interactuar con Easy Broker API

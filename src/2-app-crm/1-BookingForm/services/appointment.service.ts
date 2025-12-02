@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from '@/1-app-global-core/config';
-import type { AvailabilitySlot } from '@/1-app-global-core/types';
+import type { AvailabilitySlot } from '@/1-app-global-core/4-types';
 import type { AppointmentFormData } from '../schemas/appointment.schema';
 
 /**
@@ -761,11 +761,14 @@ export class AppointmentsService {
           formData.operationType === 'comprar'
             ? {
                 banco: (formData as any).banco || null,
-                creditoPreaprobado: (formData as any).creditoPreaprobado || null,
-                modalidadInfonavit: (formData as any).modalidadInfonavit || null,
+                creditoPreaprobado:
+                  (formData as any).creditoPreaprobado || null,
+                modalidadInfonavit:
+                  (formData as any).modalidadInfonavit || null,
                 numeroTrabajadorInfonavit:
                   (formData as any).numeroTrabajadorInfonavit || null,
-                modalidadFovissste: (formData as any).modalidadFovissste || null,
+                modalidadFovissste:
+                  (formData as any).modalidadFovissste || null,
                 numeroTrabajadorFovissste:
                   (formData as any).numeroTrabajadorFovissste || null,
               }
