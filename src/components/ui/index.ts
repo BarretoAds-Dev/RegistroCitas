@@ -1,4 +1,5 @@
 // Exportar componentes UI (atoms + molecules + componentes globales)
+// FormField y ErrorMessage son componentes estáticos optimizados (sin estado, sin hooks)
 export { default as Button } from './Button';
 export { default as Input } from './Input';
 export { default as Select } from './Select';

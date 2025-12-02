@@ -1,11 +1,11 @@
 /** @jsxImportSource preact */
-import AppointmentFormFields from '@/components/ui/AppointmentFormFields';
 import {
   BUDGET_OPTIONS_COMPRAR,
   BUDGET_OPTIONS_RENTAR,
 } from '@/1-app-global-core/config';
 import { useAppointmentForm } from '@/1-app-global-core/hooks/useAppointmentForm';
 import { Button, ErrorMessage, FormField, Input } from '@/components';
+import AppointmentFormFields from '@/components/ui/AppointmentFormFields';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 interface Property {

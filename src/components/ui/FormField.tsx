@@ -1,3 +1,13 @@
+/**
+ * FormField Component - Optimizado sin Estado
+ *
+ * Componente estático sin hooks ni estado interno.
+ * Renderizado puro basado en props.
+ *
+ * Nota: Aunque es TSX, es completamente estático (equivalente a Astro en rendimiento).
+ * No se puede convertir a Astro porque se usa dentro de componentes Preact/TSX.
+ */
+
 /** @jsxImportSource preact */
 import type { ComponentChildren } from 'preact';
 

@@ -25,13 +25,34 @@ Esta carpeta contiene toda la documentación técnica del proyecto.
   - Logs y debugging
   - Troubleshooting común
 
+### ⚡ Estrategia de Carga
+
+- **[COMPONENTS_LOADING_STRATEGY.md](./COMPONENTS_LOADING_STRATEGY.md)** - Matriz de decisión para directivas client
+  - Estrategia de carga por componente
+  - Directivas client:load, client:visible, client:idle
+  - Optimización de rendimiento con Islands Architecture
+
 ## 🎯 Estructura del Proyecto
 
 ```
 src/
 ├── 1-app-global-core/    # Core global compartido
-├── 2-app-crm/            # Sistema CRM y reservas
-└── 3-app-site/           # Website público (futuro)
+│   ├── config/          # Configuración centralizada
+│   ├── services/        # Servicios unificados (booking, easybroker, security)
+│   ├── hooks/           # Hooks compartidos
+│   ├── types/           # Tipos TypeScript compartidos
+│   └── utils/           # Utilidades compartidas
+│
+├── 2-app-crm/           # Sistema CRM y reservas
+│   ├── 1-BookingForm/   # Sistema de reservas
+│   ├── 2-Dashboard-PanelGeneral/
+│   ├── 3-Dashboard-Propiedades/
+│   └── 4-Dashboard-CitasyClientes/
+│
+├── components/          # Componentes UI compartidos
+├── layouts/             # Layouts compartidos
+└── pages/               # Páginas y APIs
+    └── api/             # Endpoints API usando servicios unificados
 ```
 
 ## 📖 Guías Rápidas
@@ -57,5 +78,5 @@ Esta documentación se actualiza cuando:
 
 ---
 
-**Última actualización**: Diciembre 2024
+**Última actualización**: Enero 2025
 
