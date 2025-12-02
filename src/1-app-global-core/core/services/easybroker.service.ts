@@ -256,9 +256,12 @@ class EasyBrokerService {
 						tags: prop.tags || [],
 						show_prices: prop.show_prices !== undefined ? prop.show_prices : true,
 						share_commission: prop.share_commission !== undefined ? prop.share_commission : false,
-						public_url: prop.public_url || prop.url || null,
-						slug: prop.slug || prop.title_slug || null,
-						agency_slug: prop.agency_slug || prop.agency?.slug || null,
+						// Intentar obtener public_url de múltiples campos posibles
+						public_url: prop.public_url || prop.url || prop.public_url_full || prop.listing_url || null,
+						// Intentar obtener slug de múltiples campos posibles
+						slug: prop.slug || prop.title_slug || prop.property_slug || prop.url_slug || null,
+						// Intentar obtener agency_slug de múltiples campos posibles
+						agency_slug: prop.agency_slug || prop.agency?.slug || prop.agency_slug_name || null,
 					};
 				});
 
@@ -365,6 +368,48 @@ class EasyBrokerService {
 		const validation = EasyBrokerPropertyResponseSchema.safeParse(result.data);
 
 		if (!validation.success) {
+			// Si la validación falla, intentar normalizar manualmente
+			const rawData = result.data as any;
+			const property = rawData.property || rawData;
+
+			if (property && property.public_id) {
+				// Normalizar la propiedad manualmente
+				const normalizedProperty: any = {
+					public_id: property.public_id || property.id,
+					title: property.title || '',
+					title_image_full: property.title_image_full || property.title_image_thumb || null,
+					title_image_thumb: property.title_image_thumb || null,
+					location: typeof property.location === 'string'
+						? property.location
+						: property.location || '',
+					operations: property.operations || [],
+					property_type: property.property_type || 'casa',
+					status: property.status || 'active',
+					features: property.features || {},
+					images: property.images || [],
+					description: property.description || null,
+					tags: property.tags || [],
+					show_prices: property.show_prices !== undefined ? property.show_prices : true,
+					share_commission: property.share_commission !== undefined ? property.share_commission : false,
+					// Intentar obtener public_url de múltiples campos
+					public_url: property.public_url || property.url || property.public_url_full || property.listing_url || property.web_url || null,
+					slug: property.slug || property.title_slug || property.property_slug || property.url_slug || null,
+					agency_slug: property.agency_slug || property.agency?.slug || property.agency_slug_name || null,
+				};
+
+				console.log('✅ Propiedad normalizada manualmente:', {
+					public_id: normalizedProperty.public_id,
+					hasPublicUrl: !!normalizedProperty.public_url,
+					hasSlug: !!normalizedProperty.slug,
+					public_url: normalizedProperty.public_url,
+				});
+
+				return {
+					data: normalizedProperty as EasyBrokerProperty,
+					error: null,
+				};
+			}
+
 			return {
 				data: null,
 				error: {
@@ -374,8 +419,23 @@ class EasyBrokerService {
 			};
 		}
 
+		// Normalizar la propiedad validada para asegurar que tenga public_url
+		const validatedProperty = validation.data.property;
+		const normalizedProperty = {
+			...validatedProperty,
+			// Intentar obtener public_url de múltiples campos si no está disponible
+			public_url: validatedProperty.public_url || (result.data as any).property?.public_url || (result.data as any).property?.url || (result.data as any).property?.public_url_full || (result.data as any).property?.listing_url || (result.data as any).property?.web_url || null,
+		};
+
+		console.log('✅ Propiedad obtenida:', {
+			public_id: normalizedProperty.public_id,
+			hasPublicUrl: !!normalizedProperty.public_url,
+			hasSlug: !!normalizedProperty.slug,
+			public_url: normalizedProperty.public_url,
+		});
+
 		return {
-			data: validation.data.property,
+			data: normalizedProperty,
 			error: null,
 		};
 	}

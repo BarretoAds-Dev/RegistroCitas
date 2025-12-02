@@ -67,6 +67,12 @@ const searchedProperties = computed(() => {
   const advancedFilters = advancedFiltersState.value;
   let filtered = filteredProperties.value;
 
+  console.log('🔍 searchedProperties computed:', {
+    query,
+    locationFilter: advancedFilters.location,
+    totalBeforeFilters: filtered.length,
+  });
+
   // Filtro por búsqueda de texto
   if (query) {
     filtered = filtered.filter((prop) => {
@@ -99,13 +105,21 @@ const searchedProperties = computed(() => {
       }
     }
 
-    // Filtro por ubicación
+    // Filtro por ubicación (búsqueda más flexible)
     if (advancedFilters.location.trim()) {
+      const searchLocation = advancedFilters.location.toLowerCase().trim();
       const locationStr =
         typeof prop.location === 'string'
           ? prop.location.toLowerCase()
           : `${prop.location.city || ''} ${prop.location.state || ''} ${prop.location.neighborhood || ''} ${prop.location.address || ''}`.toLowerCase();
-      if (!locationStr.includes(advancedFilters.location.toLowerCase())) {
+
+      // Buscar si alguna palabra del filtro está en la ubicación
+      const searchWords = searchLocation.split(/\s+/).filter(word => word.length > 2);
+      const locationMatches = searchWords.length === 0
+        ? locationStr.includes(searchLocation)
+        : searchWords.some(word => locationStr.includes(word));
+
+      if (!locationMatches) {
         return false;
       }
     }
@@ -148,21 +162,25 @@ const searchedProperties = computed(() => {
   });
 
   // Calcular total de páginas
-  const itemsPerPage = 6;
+  const itemsPerPage = 12; // Aumentar a 12 propiedades por página
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
   totalPagesState.value = totalPages;
 
   // Aplicar paginación
   const currentPage = currentPageState.value;
-  const startIndex = (currentPage - 1) * itemsPerPage;
+
+  // Validar que la página actual no exceda el total (pero NO modificar dentro del computed)
+  // Esto se manejará fuera del computed para evitar loops infinitos
+  const validPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
 
   const paginated = filtered.slice(startIndex, endIndex);
 
   // Debug: log para verificar paginación
   if (total > 0) {
-    console.log(`📄 Paginación: ${total} propiedades totales, página ${currentPage} de ${totalPages}, mostrando ${paginated.length} propiedades`);
+    console.log(`📄 Paginación computed: ${total} propiedades totales, página ${validPage} de ${totalPages}, mostrando ${paginated.length} propiedades (currentPageState: ${currentPage})`);
   }
 
   return paginated;
@@ -179,74 +197,91 @@ export function useProperties() {
 
     try {
       const filters = filtersState.value;
-      // Cargar todas las propiedades (sin límite) para paginar en el cliente
-      const params = new URLSearchParams({
-        page: '1',
-        limit: '100', // Cargar hasta 100 propiedades para paginar en el cliente
-      });
 
-      // Agregar filtros de búsqueda
-      if (filters.search?.statuses?.length) {
-        filters.search.statuses.forEach((status) => {
-          params.append('statuses[]', status);
+      // Función auxiliar para cargar una página de propiedades
+      const fetchPage = async (page: number, limit: number = 50): Promise<EasyBrokerProperty[]> => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
         });
-      }
 
-      if (filters.search?.property_types?.length) {
-        filters.search.property_types.forEach((type) => {
-          params.append('property_types[]', type);
-        });
-      }
-
-      // Agregar filtros avanzados
-      if (filters.search?.min_price !== undefined) {
-        params.append('min_price', filters.search.min_price.toString());
-      }
-      if (filters.search?.max_price !== undefined) {
-        params.append('max_price', filters.search.max_price.toString());
-      }
-      if (filters.search?.min_bedrooms !== undefined) {
-        params.append('min_bedrooms', filters.search.min_bedrooms.toString());
-      }
-      if (filters.search?.max_bedrooms !== undefined) {
-        params.append('max_bedrooms', filters.search.max_bedrooms.toString());
-      }
-      if (filters.search?.min_bathrooms !== undefined) {
-        params.append('min_bathrooms', filters.search.min_bathrooms.toString());
-      }
-      if (filters.search?.max_bathrooms !== undefined) {
-        params.append('max_bathrooms', filters.search.max_bathrooms.toString());
-      }
-      if (filters.search?.locations?.length) {
-        filters.search.locations.forEach((location) => {
-          params.append('locations[]', location);
-        });
-      }
-
-      // Intentar cargar de Easy Broker primero
-      let easyBrokerProperties: EasyBrokerProperty[] = [];
-      try {
-        const easyBrokerResponse = await fetch(
-          `/api/easybroker/properties?${params.toString()}`
-        );
-
-        if (easyBrokerResponse.ok) {
-          const easyBrokerData = await easyBrokerResponse.json();
-          easyBrokerProperties = easyBrokerData.content || [];
-          console.log(
-            `✅ Easy Broker: ${easyBrokerProperties.length} propiedades cargadas`
-          );
-        } else {
-          const errorData = await easyBrokerResponse.json().catch(() => ({}));
-          console.warn(
-            '⚠️ Easy Broker API error:',
-            errorData.error || easyBrokerResponse.statusText
-          );
+        // Agregar filtros de búsqueda
+        if (filters.search?.statuses?.length) {
+          filters.search.statuses.forEach((status) => {
+            params.append('statuses[]', status);
+          });
         }
-      } catch (easyBrokerError) {
-        console.warn('⚠️ Error al cargar de Easy Broker:', easyBrokerError);
-        // Continuar aunque Easy Broker falle
+
+        if (filters.search?.property_types?.length) {
+          filters.search.property_types.forEach((type) => {
+            params.append('property_types[]', type);
+          });
+        }
+
+        // Agregar filtros avanzados
+        if (filters.search?.min_price !== undefined) {
+          params.append('min_price', filters.search.min_price.toString());
+        }
+        if (filters.search?.max_price !== undefined) {
+          params.append('max_price', filters.search.max_price.toString());
+        }
+        if (filters.search?.min_bedrooms !== undefined) {
+          params.append('min_bedrooms', filters.search.min_bedrooms.toString());
+        }
+        if (filters.search?.max_bedrooms !== undefined) {
+          params.append('max_bedrooms', filters.search.max_bedrooms.toString());
+        }
+        if (filters.search?.min_bathrooms !== undefined) {
+          params.append('min_bathrooms', filters.search.min_bathrooms.toString());
+        }
+        if (filters.search?.max_bathrooms !== undefined) {
+          params.append('max_bathrooms', filters.search.max_bathrooms.toString());
+        }
+        if (filters.search?.locations?.length) {
+          filters.search.locations.forEach((location) => {
+            params.append('locations[]', location);
+          });
+        }
+
+        try {
+          const response = await fetch(`/api/easybroker/properties?${params.toString()}`);
+          if (response.ok) {
+            const data = await response.json();
+            return data.content || [];
+          }
+          return [];
+        } catch (error) {
+          console.warn(`⚠️ Error al cargar página ${page}:`, error);
+          return [];
+        }
+      };
+
+      // Cargar TODAS las propiedades de Easy Broker (múltiples requests si es necesario)
+      let easyBrokerProperties: EasyBrokerProperty[] = [];
+      let currentPage = 1;
+      let hasMore = true;
+      const limit = 50; // Máximo permitido por EasyBroker API
+
+      console.log('🔄 Cargando todas las propiedades de Easy Broker...');
+
+      while (hasMore) {
+        const pageProperties = await fetchPage(currentPage, limit);
+        if (pageProperties.length > 0) {
+          easyBrokerProperties = [...easyBrokerProperties, ...pageProperties];
+          console.log(`✅ Página ${currentPage}: ${pageProperties.length} propiedades (Total: ${easyBrokerProperties.length})`);
+
+          // Si la página tiene menos propiedades que el límite, no hay más páginas
+          if (pageProperties.length < limit) {
+            hasMore = false;
+          } else {
+            currentPage++;
+          }
+        } else {
+          hasMore = false;
+        }
       }
+
+      console.log(`✅ Easy Broker: ${easyBrokerProperties.length} propiedades cargadas en total`);
 
       // Cargar propiedades de Supabase también
       let supabaseProperties: EasyBrokerProperty[] = [];
@@ -314,9 +349,17 @@ export function useProperties() {
 
       // Combinar propiedades (Easy Broker primero, luego Supabase)
       const allProperties = [...easyBrokerProperties, ...supabaseProperties];
+      const previousLength = propertiesState.value.length;
       propertiesState.value = allProperties;
-      // Resetear paginación al cargar nuevas propiedades
-      currentPageState.value = 1;
+
+      // NO resetear paginación al cargar nuevas propiedades - mantener la página actual
+      // Solo resetear si es la primera carga (no había propiedades antes)
+      if (previousLength === 0 && allProperties.length > 0) {
+        console.log('🔄 Primera carga: reseteando a página 1');
+        currentPageState.value = 1;
+      } else {
+        console.log('✅ Manteniendo página actual:', currentPageState.value);
+      }
       console.log(
         `✅ Total: ${allProperties.length} propiedades cargadas (${easyBrokerProperties.length} Easy Broker + ${supabaseProperties.length} Supabase)`
       );
@@ -330,13 +373,27 @@ export function useProperties() {
   };
 
   const setSearchQuery = (query: string): void => {
+    const previousQuery = searchQueryState.value;
     searchQueryState.value = query;
-    resetPagination(); // Resetear paginación al buscar
+    // Solo resetear paginación si la query realmente cambió (no es la misma)
+    if (previousQuery !== query) {
+      console.log('🔄 Query cambió, reseteando paginación:', { previousQuery, newQuery: query });
+      resetPagination(); // Resetear paginación al buscar
+    } else {
+      console.log('⚠️ setSearchQuery llamado con la misma query, NO reseteando paginación');
+    }
   };
 
   const setSelectedType = (type: string): void => {
+    const previousType = selectedTypeState.value;
     selectedTypeState.value = type;
-    resetPagination(); // Resetear paginación al cambiar tipo
+    // Solo resetear paginación si el tipo realmente cambió
+    if (previousType !== type) {
+      console.log('🔄 Tipo cambió, reseteando paginación:', { previousType, newType: type });
+      resetPagination(); // Resetear paginación al cambiar tipo
+    } else {
+      console.log('⚠️ setSelectedType llamado con el mismo tipo, NO reseteando paginación');
+    }
   };
 
   const setFilters = (newFilters: Partial<EasyBrokerSearchFilters>): void => {
@@ -359,9 +416,10 @@ export function useProperties() {
     maxBathrooms: number | null;
     location: string;
   }): void => {
+    console.log('🔍 setAdvancedFilters llamado con:', filters);
     advancedFiltersState.value = filters;
     resetPagination();
-    // Actualizar filtros de API también
+    // Actualizar filtros de API también (solo para filtros que la API soporta)
     setFilters({
       search: {
         ...filtersState.value.search,
@@ -371,13 +429,26 @@ export function useProperties() {
         max_bedrooms: filters.maxBedrooms ?? undefined,
         min_bathrooms: filters.minBathrooms ?? undefined,
         max_bathrooms: filters.maxBathrooms ?? undefined,
-        locations: filters.location.trim()
-          ? [filters.location.trim()]
-          : undefined,
+        // NO enviar locations a la API - el filtro de ubicación se aplica en el cliente
+        // porque la API de EasyBroker requiere formato específico y el usuario puede buscar texto libre
       },
     });
-    // Recargar propiedades con nuevos filtros
-    fetchProperties();
+
+    // Solo recargar desde la API si hay filtros que la API soporta (precio, recámaras, baños)
+    // El filtro de ubicación se aplica en el cliente, no necesita recargar
+    const hasApiFilters = filters.minPrice !== null ||
+                          filters.maxPrice !== null ||
+                          filters.minBedrooms !== null ||
+                          filters.maxBedrooms !== null ||
+                          filters.minBathrooms !== null ||
+                          filters.maxBathrooms !== null;
+
+    if (hasApiFilters) {
+      console.log('🔄 Recargando propiedades desde API con filtros de precio/recámaras/baños');
+      fetchProperties();
+    } else {
+      console.log('✅ Filtros avanzados actualizados (solo ubicación), aplicando filtros en cliente');
+    }
   };
 
   const resetAdvancedFilters = (): void => {
@@ -409,7 +480,24 @@ export function useProperties() {
   };
 
   const setCurrentPage = (page: number): void => {
-    currentPageState.value = Math.max(1, Math.min(page, totalPagesState.value));
+    const maxPage = totalPagesState.value;
+    const newPage = Math.max(1, Math.min(page, maxPage));
+
+    console.log('🔢 setCurrentPage llamado:', {
+      requestedPage: page,
+      maxPage,
+      currentPage: currentPageState.value,
+      newPage,
+    });
+
+    if (newPage !== currentPageState.value) {
+      currentPageState.value = newPage;
+      console.log('✅ Página cambiada a:', newPage);
+      // Scroll al inicio de la lista cuando cambias de página
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      console.log('⚠️ Página no cambió (ya está en:', newPage, ')');
+    }
   };
 
   const goToNextPage = (): void => {
@@ -426,7 +514,19 @@ export function useProperties() {
 
   // Resetear a página 1 cuando cambian los filtros
   const resetPagination = (): void => {
+    console.log('🔄 resetPagination llamado');
     currentPageState.value = 1;
+  };
+
+  // Función para corregir la página si excede el total
+  // Se llama manualmente cuando es necesario, no automáticamente
+  const correctPageIfNeeded = (): void => {
+    const current = currentPageState.value;
+    const total = totalPagesState.value;
+    if (current > total && total > 0) {
+      console.log(`⚠️ Corrigiendo página: ${current} > ${total}, ajustando a ${total}`);
+      currentPageState.value = total;
+    }
   };
 
   return {
