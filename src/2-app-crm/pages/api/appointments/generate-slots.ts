@@ -1,5 +1,5 @@
+import { supabaseAdmin } from '@/1-app-global-core/config';
 import type { APIRoute } from 'astro';
-import { supabaseAdmin } from '@/1-app-global-core/core/config';
 
 export const prerender = false;
 

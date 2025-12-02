@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { validateAppointmentClient } from '@/1-app-global-core/core/utils/validation';
+import { validateAppointmentClient } from '@/1-app-global-core/utils/validation';
 
 interface UseAppointmentFormProps {
   selectedDate: Date | string | null;

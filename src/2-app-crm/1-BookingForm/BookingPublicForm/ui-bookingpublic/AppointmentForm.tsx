@@ -1,12 +1,17 @@
 /** @jsxImportSource preact */
-import { useEffect, useMemo, useState } from 'preact/hooks';
 import {
   BUDGET_OPTIONS_COMPRAR,
   BUDGET_OPTIONS_RENTAR,
-} from '@/1-app-global-core/core/config';
+} from '@/1-app-global-core/config';
 import AppointmentFormFields from '@/1-app-global-core/shared/components/AppointmentFormFields';
 import { useAppointmentForm } from '@/1-app-global-core/shared/hooks/useAppointmentForm';
-import { Button, ErrorMessage, FormField, Input } from '@/1-app-global-core/shared/ui';
+import {
+  Button,
+  ErrorMessage,
+  FormField,
+  Input,
+} from '@/1-app-global-core/shared/ui';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 interface Property {
   id: string;

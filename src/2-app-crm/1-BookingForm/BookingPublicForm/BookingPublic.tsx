@@ -1,14 +1,14 @@
 /** @jsxImportSource preact */
-import { render } from 'preact';
-import { useEffect, useMemo, useState } from 'preact/hooks';
 import type {
   AppointmentConfig,
   AppointmentStep,
   AvailableSlot,
-} from '@/1-app-global-core/core/types/appointment';
+} from '@/1-app-global-core/types/appointment';
 import AppointmentFormCRM from '@/2-app-crm/4-Dashboard-CitasyClientes/components/AppointmentFormCRM';
 import CalendarCRM from '@/2-app-crm/4-Dashboard-CitasyClientes/components/CalendarCRM';
 import TimeSlotsCRM from '@/2-app-crm/4-Dashboard-CitasyClientes/components/TimeSlotsCRM';
+import { render } from 'preact';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import AppointmentForm from './ui-bookingpublic/AppointmentForm';
 import Calendar from './ui-bookingpublic/Calendar';
 import ConfirmationPanel from './ui-bookingpublic/ConfirmationPanel';

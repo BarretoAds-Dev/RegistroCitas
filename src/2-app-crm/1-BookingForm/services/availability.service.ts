@@ -1,5 +1,5 @@
-import { supabase } from '@/1-app-global-core/core/config';
-import type { AvailabilitySlot } from '@/1-app-global-core/core/types';
+import { supabase } from '@/1-app-global-core/config';
+import type { AvailabilitySlot } from '@/1-app-global-core/types';
 
 /**
  * Servicio para gestionar disponibilidad de slots

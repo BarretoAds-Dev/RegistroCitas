@@ -1,7 +1,7 @@
 /** @jsxImportSource preact */
-import { easybrokerConfig } from '@/1-app-global-core/core/config';
-import type { EasyBrokerProperty } from '@/1-app-global-core/core/types/easybroker';
-import { getEasyBrokerPropertyUrl } from '@/1-app-global-core/core/utils/easybroker-url';
+import { easybrokerConfig } from '@/1-app-global-core/config';
+import { getEasyBrokerPropertyUrl } from '@/1-app-global-core/utils/easybroker-url';
+import type { EasyBrokerProperty } from '@/1-app-global-core/types/easybroker';
 import type { JSX } from 'preact';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { useProperties } from '../hooks/useProperties';
@@ -211,10 +211,16 @@ export function PropertiesDashboard({
                       // Intentar copiar al portapapeles
                       try {
                         await navigator.clipboard.writeText(appointmentLink);
-                        alert('✅ Link de cita copiado al portapapeles:\n' + appointmentLink);
+                        alert(
+                          '✅ Link de cita copiado al portapapeles:\n' +
+                            appointmentLink
+                        );
                       } catch (clipboardError) {
                         // Fallback: mostrar el link en un prompt
-                        prompt('Link de cita (copia este link):', appointmentLink);
+                        prompt(
+                          'Link de cita (copia este link):',
+                          appointmentLink
+                        );
                       }
                     } catch (error) {
                       console.error('Error al generar link de cita:', error);

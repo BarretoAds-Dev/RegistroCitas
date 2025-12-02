@@ -1,5 +1,5 @@
+import type { EasyBrokerProperty } from '@/1-app-global-core/types/easybroker';
 import { useEffect, useState } from 'preact/hooks';
-import type { EasyBrokerProperty } from '@/1-app-global-core/core/types/easybroker';
 
 interface PropertiesListProps {
   initialProperties?: EasyBrokerProperty[];

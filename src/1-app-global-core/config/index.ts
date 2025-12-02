@@ -5,7 +5,7 @@
  *
  * @example
  * ```ts
- * import { supabase, supabaseAuth, easybrokerConfig, BUDGET_OPTIONS_RENTAR } from '@/1-app-global-core/core/config';
+ * import { supabase, supabaseAuth, easybrokerConfig, BUDGET_OPTIONS_RENTAR } from '@/1-app-global-core/config';
  * ```
  */
 

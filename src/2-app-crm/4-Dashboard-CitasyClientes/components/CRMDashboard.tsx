@@ -1,15 +1,15 @@
 /** @jsxImportSource preact */
-import { supabaseAuth } from '@/1-app-global-core/core/config';
+import { supabaseAuth } from '@/1-app-global-core/config';
 import { Button } from '@/1-app-global-core/shared/ui';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import BookingPublic from '../../1-BookingForm/BookingPublicForm/BookingPublic';
-import { CreatePropertyModal } from '../../3-Dashboard-Propiedades/components/CreatePropertyModal';
-import { PropertiesDashboard } from '../../3-Dashboard-Propiedades/components/PropertiesDashboard';
 import AdminSettings from '../../2-Dashboard-PanelGeneral/components/AdminSettings';
-import AdvancedFilters, { type FilterState } from './AdvancedFilters';
-import AppointmentsTable from './AppointmentsTable';
 import DashboardPanel from '../../2-Dashboard-PanelGeneral/components/DashboardPanel';
 import Sidebar from '../../2-Dashboard-PanelGeneral/components/Sidebar';
+import { CreatePropertyModal } from '../../3-Dashboard-Propiedades/components/CreatePropertyModal';
+import { PropertiesDashboard } from '../../3-Dashboard-Propiedades/components/PropertiesDashboard';
+import AdvancedFilters, { type FilterState } from './AdvancedFilters';
+import AppointmentsTable from './AppointmentsTable';
 
 interface Appointment {
   id: string;

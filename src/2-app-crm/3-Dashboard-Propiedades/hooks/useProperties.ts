@@ -1,8 +1,8 @@
-import { computed, signal } from '@preact/signals';
 import type {
   EasyBrokerProperty,
   EasyBrokerSearchFilters,
-} from '@/1-app-global-core/core/types/easybroker';
+} from '@/1-app-global-core/types/easybroker';
+import { computed, signal } from '@preact/signals';
 
 /**
  * Estado global de propiedades usando Preact Signals
@@ -22,21 +22,21 @@ const currentPageState = signal<number>(1);
 const totalPagesState = signal<number>(1);
 // Filtros avanzados
 const advancedFiltersState = signal<{
-	minPrice: number | null;
-	maxPrice: number | null;
-	minBedrooms: number | null;
-	maxBedrooms: number | null;
-	minBathrooms: number | null;
-	maxBathrooms: number | null;
-	location: string;
+  minPrice: number | null;
+  maxPrice: number | null;
+  minBedrooms: number | null;
+  maxBedrooms: number | null;
+  minBathrooms: number | null;
+  maxBathrooms: number | null;
+  location: string;
 }>({
-	minPrice: null,
-	maxPrice: null,
-	minBedrooms: null,
-	maxBedrooms: null,
-	minBathrooms: null,
-	maxBathrooms: null,
-	location: '',
+  minPrice: null,
+  maxPrice: null,
+  minBedrooms: null,
+  maxBedrooms: null,
+  minBathrooms: null,
+  maxBathrooms: null,
+  location: '',
 });
 
 /**
@@ -81,7 +81,9 @@ const searchedProperties = computed(() => {
       const locationStr =
         typeof prop.location === 'string'
           ? prop.location.toLowerCase()
-          : `${prop.location.city || ''} ${prop.location.state || ''} ${prop.location.neighborhood || ''} ${prop.location.address || ''}`.toLowerCase();
+          : `${prop.location.city || ''} ${prop.location.state || ''} ${
+              prop.location.neighborhood || ''
+            } ${prop.location.address || ''}`.toLowerCase();
       const description = prop.description?.toLowerCase() || '';
 
       return (
@@ -97,10 +99,16 @@ const searchedProperties = computed(() => {
     // Filtro por precio
     const price = prop.operations[0]?.amount;
     if (price !== undefined) {
-      if (advancedFilters.minPrice !== null && price < advancedFilters.minPrice) {
+      if (
+        advancedFilters.minPrice !== null &&
+        price < advancedFilters.minPrice
+      ) {
         return false;
       }
-      if (advancedFilters.maxPrice !== null && price > advancedFilters.maxPrice) {
+      if (
+        advancedFilters.maxPrice !== null &&
+        price > advancedFilters.maxPrice
+      ) {
         return false;
       }
     }
@@ -111,13 +119,18 @@ const searchedProperties = computed(() => {
       const locationStr =
         typeof prop.location === 'string'
           ? prop.location.toLowerCase()
-          : `${prop.location.city || ''} ${prop.location.state || ''} ${prop.location.neighborhood || ''} ${prop.location.address || ''}`.toLowerCase();
+          : `${prop.location.city || ''} ${prop.location.state || ''} ${
+              prop.location.neighborhood || ''
+            } ${prop.location.address || ''}`.toLowerCase();
 
       // Buscar si alguna palabra del filtro está en la ubicación
-      const searchWords = searchLocation.split(/\s+/).filter(word => word.length > 2);
-      const locationMatches = searchWords.length === 0
-        ? locationStr.includes(searchLocation)
-        : searchWords.some(word => locationStr.includes(word));
+      const searchWords = searchLocation
+        .split(/\s+/)
+        .filter((word) => word.length > 2);
+      const locationMatches =
+        searchWords.length === 0
+          ? locationStr.includes(searchLocation)
+          : searchWords.some((word) => locationStr.includes(word));
 
       if (!locationMatches) {
         return false;
@@ -180,7 +193,9 @@ const searchedProperties = computed(() => {
 
   // Debug: log para verificar paginación
   if (total > 0) {
-    console.log(`📄 Paginación computed: ${total} propiedades totales, página ${validPage} de ${totalPages}, mostrando ${paginated.length} propiedades (currentPageState: ${currentPage})`);
+    console.log(
+      `📄 Paginación computed: ${total} propiedades totales, página ${validPage} de ${totalPages}, mostrando ${paginated.length} propiedades (currentPageState: ${currentPage})`
+    );
   }
 
   return paginated;
@@ -199,7 +214,10 @@ export function useProperties() {
       const filters = filtersState.value;
 
       // Función auxiliar para cargar una página de propiedades
-      const fetchPage = async (page: number, limit: number = 50): Promise<EasyBrokerProperty[]> => {
+      const fetchPage = async (
+        page: number,
+        limit: number = 50
+      ): Promise<EasyBrokerProperty[]> => {
         const params = new URLSearchParams({
           page: page.toString(),
           limit: limit.toString(),
@@ -232,10 +250,16 @@ export function useProperties() {
           params.append('max_bedrooms', filters.search.max_bedrooms.toString());
         }
         if (filters.search?.min_bathrooms !== undefined) {
-          params.append('min_bathrooms', filters.search.min_bathrooms.toString());
+          params.append(
+            'min_bathrooms',
+            filters.search.min_bathrooms.toString()
+          );
         }
         if (filters.search?.max_bathrooms !== undefined) {
-          params.append('max_bathrooms', filters.search.max_bathrooms.toString());
+          params.append(
+            'max_bathrooms',
+            filters.search.max_bathrooms.toString()
+          );
         }
         if (filters.search?.locations?.length) {
           filters.search.locations.forEach((location) => {
@@ -244,7 +268,9 @@ export function useProperties() {
         }
 
         try {
-          const response = await fetch(`/api/easybroker/properties?${params.toString()}`);
+          const response = await fetch(
+            `/api/easybroker/properties?${params.toString()}`
+          );
           if (response.ok) {
             const data = await response.json();
             return data.content || [];
@@ -268,7 +294,9 @@ export function useProperties() {
         const pageProperties = await fetchPage(currentPage, limit);
         if (pageProperties.length > 0) {
           easyBrokerProperties = [...easyBrokerProperties, ...pageProperties];
-          console.log(`✅ Página ${currentPage}: ${pageProperties.length} propiedades (Total: ${easyBrokerProperties.length})`);
+          console.log(
+            `✅ Página ${currentPage}: ${pageProperties.length} propiedades (Total: ${easyBrokerProperties.length})`
+          );
 
           // Si la página tiene menos propiedades que el límite, no hay más páginas
           if (pageProperties.length < limit) {
@@ -281,7 +309,9 @@ export function useProperties() {
         }
       }
 
-      console.log(`✅ Easy Broker: ${easyBrokerProperties.length} propiedades cargadas en total`);
+      console.log(
+        `✅ Easy Broker: ${easyBrokerProperties.length} propiedades cargadas en total`
+      );
 
       // Cargar propiedades de Supabase también
       let supabaseProperties: EasyBrokerProperty[] = [];
@@ -292,52 +322,54 @@ export function useProperties() {
           // Convertir propiedades de Supabase al formato EasyBroker
           supabaseProperties =
             supabaseData.properties?.map((prop: any) => ({
-            public_id: prop.id,
-            title: prop.title,
-            title_image_full: null,
-            title_image_thumb: null,
-            location: {
-              country: 'México',
-              state: prop.address?.split(',')[2]?.trim() || '',
-              city: prop.address?.split(',')[1]?.trim() || '',
-              neighborhood: null,
-              address: prop.address,
-              postal_code: null,
-              latitude: null,
-              longitude: null,
-            },
-            operations: [
-              {
-                type: 'sale',
-                amount: prop.price,
-                currency: 'MXN',
-                formatted_amount: `$${(prop.price / 1000000).toFixed(1)}M MXN`,
-                commission: {
-                  type: 'percentage',
-                  value: 0,
-                },
-                unit: null,
+              public_id: prop.id,
+              title: prop.title,
+              title_image_full: null,
+              title_image_thumb: null,
+              location: {
+                country: 'México',
+                state: prop.address?.split(',')[2]?.trim() || '',
+                city: prop.address?.split(',')[1]?.trim() || '',
+                neighborhood: null,
+                address: prop.address,
+                postal_code: null,
+                latitude: null,
+                longitude: null,
               },
-            ],
-            property_type: prop.property_type || 'casa',
-            status: prop.status || 'active',
-            features: {
-              bathrooms: prop.bathrooms,
-              bedrooms: prop.bedrooms,
-              parking_spaces: null,
-              half_bathrooms: null,
-              lot_size: null,
-              construction_size: prop.area,
-              floors: null,
-            },
-            images: [],
-            description: prop.description,
-            tags: prop.features
-              ? prop.features.split(',').map((f: string) => f.trim())
-              : [],
-            show_prices: true,
-            share_commission: false,
-          })) || [];
+              operations: [
+                {
+                  type: 'sale',
+                  amount: prop.price,
+                  currency: 'MXN',
+                  formatted_amount: `$${(prop.price / 1000000).toFixed(
+                    1
+                  )}M MXN`,
+                  commission: {
+                    type: 'percentage',
+                    value: 0,
+                  },
+                  unit: null,
+                },
+              ],
+              property_type: prop.property_type || 'casa',
+              status: prop.status || 'active',
+              features: {
+                bathrooms: prop.bathrooms,
+                bedrooms: prop.bedrooms,
+                parking_spaces: null,
+                half_bathrooms: null,
+                lot_size: null,
+                construction_size: prop.area,
+                floors: null,
+              },
+              images: [],
+              description: prop.description,
+              tags: prop.features
+                ? prop.features.split(',').map((f: string) => f.trim())
+                : [],
+              show_prices: true,
+              share_commission: false,
+            })) || [];
           console.log(
             `✅ Supabase: ${supabaseProperties.length} propiedades cargadas`
           );
@@ -377,10 +409,15 @@ export function useProperties() {
     searchQueryState.value = query;
     // Solo resetear paginación si la query realmente cambió (no es la misma)
     if (previousQuery !== query) {
-      console.log('🔄 Query cambió, reseteando paginación:', { previousQuery, newQuery: query });
+      console.log('🔄 Query cambió, reseteando paginación:', {
+        previousQuery,
+        newQuery: query,
+      });
       resetPagination(); // Resetear paginación al buscar
     } else {
-      console.log('⚠️ setSearchQuery llamado con la misma query, NO reseteando paginación');
+      console.log(
+        '⚠️ setSearchQuery llamado con la misma query, NO reseteando paginación'
+      );
     }
   };
 
@@ -389,10 +426,15 @@ export function useProperties() {
     selectedTypeState.value = type;
     // Solo resetear paginación si el tipo realmente cambió
     if (previousType !== type) {
-      console.log('🔄 Tipo cambió, reseteando paginación:', { previousType, newType: type });
+      console.log('🔄 Tipo cambió, reseteando paginación:', {
+        previousType,
+        newType: type,
+      });
       resetPagination(); // Resetear paginación al cambiar tipo
     } else {
-      console.log('⚠️ setSelectedType llamado con el mismo tipo, NO reseteando paginación');
+      console.log(
+        '⚠️ setSelectedType llamado con el mismo tipo, NO reseteando paginación'
+      );
     }
   };
 
@@ -436,18 +478,23 @@ export function useProperties() {
 
     // Solo recargar desde la API si hay filtros que la API soporta (precio, recámaras, baños)
     // El filtro de ubicación se aplica en el cliente, no necesita recargar
-    const hasApiFilters = filters.minPrice !== null ||
-                          filters.maxPrice !== null ||
-                          filters.minBedrooms !== null ||
-                          filters.maxBedrooms !== null ||
-                          filters.minBathrooms !== null ||
-                          filters.maxBathrooms !== null;
+    const hasApiFilters =
+      filters.minPrice !== null ||
+      filters.maxPrice !== null ||
+      filters.minBedrooms !== null ||
+      filters.maxBedrooms !== null ||
+      filters.minBathrooms !== null ||
+      filters.maxBathrooms !== null;
 
     if (hasApiFilters) {
-      console.log('🔄 Recargando propiedades desde API con filtros de precio/recámaras/baños');
+      console.log(
+        '🔄 Recargando propiedades desde API con filtros de precio/recámaras/baños'
+      );
       fetchProperties();
     } else {
-      console.log('✅ Filtros avanzados actualizados (solo ubicación), aplicando filtros en cliente');
+      console.log(
+        '✅ Filtros avanzados actualizados (solo ubicación), aplicando filtros en cliente'
+      );
     }
   };
 
@@ -524,7 +571,9 @@ export function useProperties() {
     const current = currentPageState.value;
     const total = totalPagesState.value;
     if (current > total && total > 0) {
-      console.log(`⚠️ Corrigiendo página: ${current} > ${total}, ajustando a ${total}`);
+      console.log(
+        `⚠️ Corrigiendo página: ${current} > ${total}, ajustando a ${total}`
+      );
       currentPageState.value = total;
     }
   };
