@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabaseAdmin, supabase } from '../../../core/config/supabase';
+import { getSupabaseAdmin } from '../../../core/config/supabase';
 
 export const prerender = false;
 
@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ url }) => {
 			);
 		}
 
-		const client = supabaseAdmin || supabase;
+		const client = getSupabaseAdmin();
 
 		// Obtener el slot
 		const { data: slot, error: slotError } = await client

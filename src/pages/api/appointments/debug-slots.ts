@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabaseAdmin, supabase } from '../../../core/config/supabase';
+import { getSupabaseAdmin } from '../../../core/config/supabase';
 
 export const prerender = false;
 
@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ url }) => {
 		const time = url.searchParams.get('time');
 		const agentId = url.searchParams.get('agentId') || '00000000-0000-0000-0000-000000000001';
 
-		const client = supabaseAdmin || supabase;
+		const client = getSupabaseAdmin();
 
 		// Obtener todos los slots para la fecha (sin filtrar por hora primero)
 		let query = client

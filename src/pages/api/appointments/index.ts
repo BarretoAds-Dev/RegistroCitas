@@ -39,6 +39,9 @@ export const POST: APIRoute = async ({ request }) => {
 
 		console.log('🔍 Datos completos del body:', JSON.stringify(body, null, 2));
 
+		// Detectar si es una actualización (tiene appointmentId)
+		const isUpdate = body.appointmentId && typeof body.appointmentId === 'string' && body.appointmentId.trim() !== '';
+
 		// Validar con Zod
 		const validation = validateAppointment(body);
 		if (!validation.success || !validation.data) {
@@ -63,9 +66,11 @@ export const POST: APIRoute = async ({ request }) => {
 			name: formData.name,
 			operationType: formData.operationType,
 			propertyId: formData.propertyId || null,
+			appointmentId: formData.appointmentId || null,
+			isUpdate,
 		});
 
-		// Buscar slot disponible
+		// Buscar slot (sin verificar disponibilidad si es actualización)
 		console.log('🔍 Iniciando búsqueda de slot...');
 		const normalizedTime = AppointmentsService.normalizeTime(formData.time);
 		console.log('⏰ Tiempo normalizado:', {
@@ -73,10 +78,50 @@ export const POST: APIRoute = async ({ request }) => {
 			normalized: normalizedTime,
 		});
 
-		const { slot, error: slotError } = await AppointmentsService.findAvailableSlot(
-			formData.date,
-			formData.time
-		);
+		// Si es actualización, buscar el slot sin verificar disponibilidad
+		// (porque la cita ya está reservada)
+		let slot: any = null;
+		let slotError: Error | null = null;
+
+		if (isUpdate) {
+			// Para actualizaciones, solo necesitamos encontrar el slot
+			// No verificamos disponibilidad porque la cita ya está reservada
+			const { getSupabaseAdmin } = await import('../../../core/config/supabase');
+			const client = getSupabaseAdmin();
+			const cleanDate = formData.date.split('T')[0];
+			const defaultAgentId = '00000000-0000-0000-0000-000000000001';
+			const targetHHMM = normalizedTime.substring(0, 5);
+
+			const { data: slots, error: findError } = await client
+				.from('availability_slots')
+				.select('*')
+				.eq('date', cleanDate)
+				.eq('enabled', true)
+				.eq('agent_id', defaultAgentId);
+
+			if (findError) {
+				slotError = findError;
+			} else {
+				const matchingSlot = (slots || []).find((s: any) => {
+					const slotHHMM = String(s.start_time).substring(0, 5);
+					return slotHHMM === targetHHMM;
+				});
+
+				if (matchingSlot) {
+					slot = matchingSlot;
+				} else {
+					slotError = new Error(`No se encontró slot para las ${targetHHMM}`);
+				}
+			}
+		} else {
+			// Para nuevas citas, verificar disponibilidad
+			const result = await AppointmentsService.findAvailableSlot(
+				formData.date,
+				formData.time
+			);
+			slot = result.slot;
+			slotError = result.error;
+		}
 
 		// Logs temporales para debugging
 		console.log('🎯 Resultado de búsqueda de slot:', {
@@ -92,12 +137,14 @@ export const POST: APIRoute = async ({ request }) => {
 			requestedDate: formData.date,
 			requestedTime: formData.time,
 			normalizedTime: normalizedTime,
+			isUpdate,
 		});
 
 		if (slotError || !slot) {
 			// Intentar buscar todos los slots disponibles para esa fecha para diagnóstico
-			const { supabase } = await import('../../../core/config/supabase');
-			const { data: allSlots } = await supabase
+			const { getSupabaseAdmin } = await import('../../../core/config/supabase');
+			const client = getSupabaseAdmin();
+			const { data: allSlots } = await client
 				.from('availability_slots')
 				.select('*')
 				.eq('date', formData.date)
@@ -109,6 +156,7 @@ export const POST: APIRoute = async ({ request }) => {
 				date: formData.date,
 				time: formData.time,
 				normalizedTime: normalizedTime,
+				isUpdate,
 				slotsDisponiblesEnFecha: allSlots?.map(s => ({
 					id: s.id,
 					start_time: s.start_time,
@@ -151,80 +199,101 @@ export const POST: APIRoute = async ({ request }) => {
 			agent_id: slot.agent_id,
 		});
 
-		// Verificar disponibilidad (pero no bloquear si hay errores)
-		const availability = await AppointmentsService.checkSlotAvailability(slot.id);
+		// Solo verificar disponibilidad si NO es una actualización
+		if (!isUpdate) {
+			const availability = await AppointmentsService.checkSlotAvailability(slot.id);
 
-		console.log('🔍 Verificación de disponibilidad:', {
-			slotId: slot.id,
-			available: availability.available,
-			bookedCount: availability.bookedCount,
-			capacity: availability.capacity,
-			hasError: !!availability.error,
-			slotBooked: slot.booked,
-		});
-
-		// Solo marcar como completo si:
-		// 1. Realmente está lleno (bookedCount >= capacity)
-		// 2. NO hay errores en la verificación
-		// 3. El contador real es mayor o igual a la capacidad
-		if (!availability.available && availability.error === null && availability.bookedCount >= availability.capacity) {
-			console.warn('⚠️ Slot completo:', {
+			console.log('🔍 Verificación de disponibilidad:', {
 				slotId: slot.id,
+				available: availability.available,
 				bookedCount: availability.bookedCount,
 				capacity: availability.capacity,
-				date: formData.date,
-				time: formData.time,
-				message: `El slot ya tiene ${availability.bookedCount} cita(s) y su capacidad es ${availability.capacity}. Por favor selecciona otro horario disponible.`
+				hasError: !!availability.error,
+				slotBooked: slot.booked,
 			});
-			return new Response(
-				JSON.stringify({
-					error: `Slot completo. Ya hay ${availability.bookedCount} cita(s) en este horario. Por favor selecciona otro horario disponible.`,
-				}),
-				{ status: 409 }
-			);
-		}
 
-		// Si hay error en la verificación, permitir crear la cita (confiar en el contador del slot como fallback)
-		if (availability.error) {
-			console.warn('⚠️ Error al verificar disponibilidad, usando contador del slot como fallback:', availability.error.message);
-			// Verificar el contador del slot directamente como fallback
-			if (slot.booked >= slot.capacity) {
-				console.warn('⚠️ Slot marcado como lleno según contador del slot:', {
+			// Solo marcar como completo si:
+			// 1. Realmente está lleno (bookedCount >= capacity)
+			// 2. NO hay errores en la verificación
+			// 3. El contador real es mayor o igual a la capacidad
+			if (!availability.available && availability.error === null && availability.bookedCount >= availability.capacity) {
+				console.warn('⚠️ Slot completo:', {
 					slotId: slot.id,
-					booked: slot.booked,
-					capacity: slot.capacity
+					bookedCount: availability.bookedCount,
+					capacity: availability.capacity,
+					date: formData.date,
+					time: formData.time,
+					message: `El slot ya tiene ${availability.bookedCount} cita(s) y su capacidad es ${availability.capacity}. Por favor selecciona otro horario disponible.`
 				});
 				return new Response(
 					JSON.stringify({
-						error: 'Slot completo. Por favor selecciona otro horario.',
+						error: `Slot completo. Ya hay ${availability.bookedCount} cita(s) en este horario. Por favor selecciona otro horario disponible.`,
 					}),
 					{ status: 409 }
 				);
 			}
-			// Si hay error pero el slot parece disponible, continuar
-			console.log('✅ Slot disponible según contador, continuando...');
-		} else if (availability.available) {
-			console.log('✅ Slot disponible según verificación, continuando...');
+
+			// Si hay error en la verificación, permitir crear la cita (confiar en el contador del slot como fallback)
+			if (availability.error) {
+				console.warn('⚠️ Error al verificar disponibilidad, usando contador del slot como fallback:', availability.error.message);
+				// Verificar el contador del slot directamente como fallback
+				if (slot.booked >= slot.capacity) {
+					console.warn('⚠️ Slot marcado como lleno según contador del slot:', {
+						slotId: slot.id,
+						booked: slot.booked,
+						capacity: slot.capacity
+					});
+					return new Response(
+						JSON.stringify({
+							error: 'Slot completo. Por favor selecciona otro horario.',
+						}),
+						{ status: 409 }
+					);
+				}
+				// Si hay error pero el slot parece disponible, continuar
+				console.log('✅ Slot disponible según contador, continuando...');
+			} else if (availability.available) {
+				console.log('✅ Slot disponible según verificación, continuando...');
+			}
+		} else {
+			console.log('🔄 Modo actualización: omitiendo verificación de disponibilidad');
 		}
 
-		// Crear cita
-		const { appointment, error: createError } = await AppointmentsService.createAppointment(
-			formData,
-			slot
-		);
+		// Crear o actualizar cita
+		let appointment: any = null;
+		let operationError: Error | null = null;
 
-		if (createError || !appointment) {
-			console.error('❌ Error al crear cita:', createError);
+		if (isUpdate && formData.appointmentId) {
+			console.log('🔄 Actualizando cita existente:', formData.appointmentId);
+			const result = await AppointmentsService.updateAppointment(
+				formData.appointmentId,
+				formData,
+				slot
+			);
+			appointment = result.appointment;
+			operationError = result.error;
+		} else {
+			console.log('➕ Creando nueva cita');
+			const result = await AppointmentsService.createAppointment(
+				formData,
+				slot
+			);
+			appointment = result.appointment;
+			operationError = result.error;
+		}
+
+		if (operationError || !appointment) {
+			console.error(`❌ Error al ${isUpdate ? 'actualizar' : 'crear'} cita:`, operationError);
 			return new Response(
 				JSON.stringify({
-					error: 'Error al crear cita',
-					details: createError?.message || 'No se pudo crear la cita',
+					error: `Error al ${isUpdate ? 'actualizar' : 'crear'} cita`,
+					details: operationError?.message || `No se pudo ${isUpdate ? 'actualizar' : 'crear'} la cita`,
 				}),
 				{ status: 500 }
 			);
 		}
 
-		console.log('✅ Cita creada exitosamente:', appointment.id);
+		console.log(`✅ Cita ${isUpdate ? 'actualizada' : 'creada'} exitosamente:`, appointment.id);
 
 		return new Response(
 			JSON.stringify({
@@ -237,7 +306,7 @@ export const POST: APIRoute = async ({ request }) => {
 				},
 			}),
 			{
-				status: 201,
+				status: isUpdate ? 200 : 201,
 				headers: { 'Content-Type': 'application/json' },
 			}
 		);

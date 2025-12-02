@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { supabase, supabaseAdmin } from '../../../core/config/supabase';
+import { getSupabaseAdmin } from '../../../core/config/supabase';
 import type { Database } from '../../../core/types/database';
 
 type PropertyInsert = Database['public']['Tables']['properties']['Insert'];
@@ -32,8 +32,8 @@ export const POST: APIRoute = async ({ request }) => {
 			);
 		}
 
-		// Usar cliente admin para bypass RLS en operaciones del servidor
-		const client = supabaseAdmin || supabase;
+		// Usar cliente admin obligatoriamente para bypass RLS en operaciones del servidor
+		const client = getSupabaseAdmin();
 
 		// Buscar si ya existe una propiedad con el mismo título y dirección
 		const { data: existingProperty, error: searchError } = await client

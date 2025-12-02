@@ -37,6 +37,7 @@ export type Database = {
 					agent_id: string;
 					slot_id: string | null;
 					property_id: string | null;
+					client_id: string | null;
 					client_name: string;
 					client_email: string;
 					client_phone: string | null;
@@ -110,6 +111,18 @@ export type Database = {
 					status?: string;
 				};
 			};
+			clients: {
+				Row: {
+					id: string;
+					name: string;
+					email: string;
+					phone: string | null;
+					created_at: string;
+					updated_at: string;
+				};
+				Insert: Omit<Database['public']['Tables']['clients']['Row'], 'id' | 'created_at' | 'updated_at'>;
+				Update: Partial<Database['public']['Tables']['clients']['Insert']>;
+			};
 		};
 	};
 };
@@ -120,3 +133,6 @@ export type AvailabilitySlot = Tables['availability_slots']['Row'];
 export type AvailabilitySlotInsert = Tables['availability_slots']['Insert'];
 export type AvailabilitySlotUpdate = Tables['availability_slots']['Update'];
 export type Holiday = Tables['holidays']['Row'];
+export type Client = Tables['clients']['Row'];
+export type ClientInsert = Tables['clients']['Insert'];
+export type ClientUpdate = Tables['clients']['Update'];

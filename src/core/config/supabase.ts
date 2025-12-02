@@ -38,3 +38,21 @@ if (!supabaseServiceRoleKey) {
 	);
 }
 
+/**
+ * Obtiene el cliente admin de Supabase para operaciones del servidor.
+ * Lanza un error si no está disponible (requerido para bypass RLS).
+ *
+ * @throws {Error} Si SUPABASE_SERVICE_ROLE_KEY no está configurada
+ * @returns Cliente de Supabase con permisos de service_role
+ */
+export function getSupabaseAdmin(): ReturnType<typeof createClient<Database>> {
+	if (!supabaseAdmin) {
+		throw new Error(
+			'SUPABASE_SERVICE_ROLE_KEY no está configurada. ' +
+			'Esta operación requiere permisos de servidor para bypass RLS. ' +
+			'Por favor, configura SUPABASE_SERVICE_ROLE_KEY en las variables de entorno.'
+		);
+	}
+	return supabaseAdmin;
+}
+

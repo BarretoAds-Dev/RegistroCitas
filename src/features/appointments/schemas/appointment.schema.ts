@@ -141,6 +141,8 @@ export const appointmentSchema = z.object({
 	time: z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, 'Formato de hora inválido'),
 	// propertyId es opcional (puede ser null, string vacío, o string válido)
 	propertyId: z.union([z.string().min(1), z.null(), z.literal('')]).optional(),
+	// appointmentId es opcional (para actualizaciones)
+	appointmentId: z.string().uuid('appointmentId debe ser un UUID válido').optional(),
 }).and(contactSchema).and(
 	z.union([
 		rentarSchema,
